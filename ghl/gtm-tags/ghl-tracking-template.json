@@ -1,0 +1,780 @@
+{
+    "exportFormatVersion": 2,
+    "exportTime": "2026-05-12 20:21:31",
+    "containerVersion": {
+        "path": "accounts/0000000000/containers/000000000/versions/0",
+        "accountId": "0000000000",
+        "containerId": "000000000",
+        "containerVersionId": "0",
+        "container": {
+            "path": "accounts/0000000000/containers/000000000",
+            "accountId": "0000000000",
+            "containerId": "000000000",
+            "name": "template-ghl-tracking",
+            "publicId": "GTM-XXXXXXX",
+            "usageContext": [
+                "WEB"
+            ],
+            "fingerprint": "1755617057034",
+            "features": {
+                "supportUserPermissions": true,
+                "supportEnvironments": true,
+                "supportWorkspaces": true,
+                "supportGtagConfigs": false,
+                "supportBuiltInVariables": true,
+                "supportClients": false,
+                "supportFolders": true,
+                "supportTags": true,
+                "supportTemplates": true,
+                "supportTriggers": true,
+                "supportVariables": true,
+                "supportVersions": true,
+                "supportZones": true,
+                "supportTransformations": false
+            },
+            "tagIds": [
+                "GTM-XXXXXXX"
+            ]
+        },
+        "tag": [
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "tagId": "17",
+                "name": "GHL - postMessage Bridge",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  var s = document.createElement('script');\n  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@main/ghl/scripts/form-submit-bridge/form-submit-bridge.js';\n  s.async = true;\n  document.head.appendChild(s);\n</script>\n"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1778616718320",
+                "firingTriggerId": [
+                    "2147479553"
+                ],
+                "tagFiringOption": "ONCE_PER_EVENT",
+                "monitoringMetadata": {
+                    "type": "MAP"
+                },
+                "consentSettings": {
+                    "consentStatus": "NOT_SET"
+                }
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "tagId": "35",
+                "name": "Meta Event - Lead - GHL Form Submit",
+                "type": "html",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "html",
+                        "value": "<script>\n  // Fire Meta Pixel Lead event with advanced matching from GHL form submit.\n  // Re-init scopes the user data to this event, then track sends it.\n  fbq('init', '{{Meta Pixel ID}}', {\n    em: {{cJS - GHL Email (Normalized)}},\n    ph: {{cJS - GHL Phone (E.164)}},\n    fn: {{DLV - GHL First Name}},\n    ln: {{DLV - GHL Last Name}}\n  });\n\n  fbq('track', 'Lead', {\n    content_name: 'GHL Form Submit',\n    content_category: 'Lead',\n    lead_type: 'ghl_form_submit',\n    form_id: {{DLV - GHL Form ID}},\n    ad_placement: {{cJS - Placement}},\n    traffic_source: {{cJS - Traffic Source}}\n  }, {\n    eventID: {{DLV - GHL Event ID}}\n  });\n</script>"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "supportDocumentWrite",
+                        "value": "false"
+                    }
+                ],
+                "fingerprint": "1778609429592",
+                "firingTriggerId": [
+                    "36"
+                ],
+                "tagFiringOption": "ONCE_PER_EVENT",
+                "monitoringMetadata": {
+                    "type": "MAP"
+                },
+                "consentSettings": {
+                    "consentStatus": "NOT_SET"
+                }
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "tagId": "37",
+                "name": "GA4 Event - GHL Form Submit",
+                "type": "gaawe",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "sendEcommerceData",
+                        "value": "false"
+                    },
+                    {
+                        "type": "LIST",
+                        "key": "eventSettingsTable",
+                        "list": [
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "parameter",
+                                        "value": "placement_param"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "parameterValue",
+                                        "value": "{{cJS - Placement}}"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "MAP",
+                                "map": [
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "parameter",
+                                        "value": "traffic_source_param"
+                                    },
+                                    {
+                                        "type": "TEMPLATE",
+                                        "key": "parameterValue",
+                                        "value": "{{cJS - Traffic Source}}"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "eventName",
+                        "value": "ga4e_ghl_form_submit"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "measurementIdOverride",
+                        "value": "{{GA4 Measurement ID}}"
+                    }
+                ],
+                "fingerprint": "1778610539857",
+                "firingTriggerId": [
+                    "36"
+                ],
+                "tagFiringOption": "ONCE_PER_EVENT",
+                "monitoringMetadata": {
+                    "type": "MAP"
+                },
+                "consentSettings": {
+                    "consentStatus": "NOT_SET"
+                }
+            }
+        ],
+        "trigger": [
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "triggerId": "36",
+                "name": "GHL Form Submit",
+                "type": "CUSTOM_EVENT",
+                "customEventFilter": [
+                    {
+                        "type": "EQUALS",
+                        "parameter": [
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg0",
+                                "value": "{{_event}}"
+                            },
+                            {
+                                "type": "TEMPLATE",
+                                "key": "arg1",
+                                "value": "ghl_form_submit"
+                            }
+                        ]
+                    }
+                ],
+                "fingerprint": "1778608934006"
+            }
+        ],
+        "variable": [
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "4",
+                "name": "GA4 Measurement ID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "REPLACE_WITH_GA4_MEASUREMENT_ID"
+                    }
+                ],
+                "fingerprint": "1756394103980",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "5",
+                "name": "Meta Pixel ID",
+                "type": "c",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "value",
+                        "value": "REPLACE_WITH_META_PIXEL_ID"
+                    }
+                ],
+                "fingerprint": "1756394386627",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "18",
+                "name": "DLV - GHL Form ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_form_id"
+                    }
+                ],
+                "fingerprint": "1778607739058",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "19",
+                "name": "DLV - GHL Email",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_email"
+                    }
+                ],
+                "fingerprint": "1778608065864",
+                "formatValue": {
+                    "convertUndefinedToValue": {
+                        "type": "TEMPLATE",
+                        "value": "\"\""
+                    }
+                }
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "20",
+                "name": "DLV - GHL Phone",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_phone"
+                    }
+                ],
+                "fingerprint": "1778607791273",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "21",
+                "name": "DLV - GHL First Name",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_first_name"
+                    }
+                ],
+                "fingerprint": "1778607815891",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "22",
+                "name": "DLV - GHL Last Name",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_last_name"
+                    }
+                ],
+                "fingerprint": "1778607846171",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "23",
+                "name": "DLV - GHL Location ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_location_id"
+                    }
+                ],
+                "fingerprint": "1778607879162",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "24",
+                "name": "DLV - GHL Calendar ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_calendar_id"
+                    }
+                ],
+                "fingerprint": "1778607906652",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "25",
+                "name": "DLV - GHL Appointment ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_appointment_id"
+                    }
+                ],
+                "fingerprint": "1778607944291",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "26",
+                "name": "DLV - GHL Form Data",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_form_data"
+                    }
+                ],
+                "fingerprint": "1778607979012",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "27",
+                "name": "DLV - GHL Booking Data",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_booking_data"
+                    }
+                ],
+                "fingerprint": "1778608004472",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "28",
+                "name": "cJS - GHL Phone (E.164)",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // Strip non-digits and ensure US country code for Meta CAPI matching.\n  // Adjust the default country code if your client base is non-US.\n  var phone = {{DLV - GHL Phone}};\n  if (!phone || typeof phone !== 'string') return undefined;\n  var digits = phone.replace(/\\D/g, ''); // remove everything that isn't a digit\n  if (digits.length === 0) return undefined;\n  // If 10 digits, assume US and prepend 1\n  if (digits.length === 10) digits = '1' + digits;\n  return digits;\n}"
+                    }
+                ],
+                "fingerprint": "1778609067904",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "29",
+                "name": "1PC - _fbp",
+                "type": "k",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "decodeCookie",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "_fbp"
+                    }
+                ],
+                "fingerprint": "1778608225207",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "30",
+                "name": "1PC - _fbc",
+                "type": "k",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "decodeCookie",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "_fbc"
+                    }
+                ],
+                "fingerprint": "1778608243913",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "31",
+                "name": "cJS - Event Source URL",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // The full URL of the page where the event happened \u2014 Meta uses this\n  // to verify the event source matches the domain on your pixel.\n  return window.location.href;\n}"
+                    }
+                ],
+                "fingerprint": "1778608304226",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "32",
+                "name": "cJS - User Agent",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // Sent as client_user_agent in CAPI for event matching with the browser pixel.\n  return navigator.userAgent;\n}"
+                    }
+                ],
+                "fingerprint": "1778608327703",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "33",
+                "name": "cJS - Traffic Source",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // Last-touch traffic source for both lead gen and ecommerce conversions\n  // Uses sessionStorage to persist source through multi-page funnels (checkout flows, popup forms on internal pages)\n  // Distinguishes paid Facebook from organic via UTM convention since fbclid alone is unreliable\n  \n  var urlParams = new URLSearchParams(window.location.search);\n  var referrer = document.referrer.toLowerCase();\n  \n  // Helper to safely read from sessionStorage with fallback for private browsing/blocked storage\n  function getStored(key) {\n    try { return sessionStorage.getItem(key) || ''; } catch(e) { return ''; }\n  }\n  \n  // Helper to safely write to sessionStorage\n  function setStored(key, value) {\n    try { sessionStorage.setItem(key, value); } catch(e) {}\n  }\n  \n  // STEP 1: Capture any fresh signals from current URL into sessionStorage\n  // This ensures last-touch works correctly when a user re-enters the site with a new click ID\n  \n  // Click ID capture - each platform's unique click identifier\n  if (urlParams.get('gclid')) setStored('gclid', urlParams.get('gclid'));\n  if (urlParams.get('msclkid')) setStored('msclkid', urlParams.get('msclkid'));\n  if (urlParams.get('fbclid')) setStored('fbclid', urlParams.get('fbclid'));\n  if (urlParams.get('ttclid')) setStored('ttclid', urlParams.get('ttclid'));\n  \n  // UTM capture - source and medium together let us distinguish paid social from organic social\n  if (urlParams.get('utm_source')) setStored('utm_source', urlParams.get('utm_source').toLowerCase());\n  if (urlParams.get('utm_medium')) setStored('utm_medium', urlParams.get('utm_medium').toLowerCase());\n  \n  // Capture the original referrer on first pageview so organic detection works on deep funnel pages\n  // Only set this once per session - if storage already has it, this is not the landing page\n  if (!getStored('original_referrer') && referrer && referrer.indexOf(window.location.hostname) === -1) {\n    setStored('original_referrer', referrer);\n  }\n  \n  // STEP 2: Resolve traffic source using all available signals (URL + stored)\n  \n  var utmSource = urlParams.get('utm_source') ? urlParams.get('utm_source').toLowerCase() : getStored('utm_source');\n  var utmMedium = urlParams.get('utm_medium') ? urlParams.get('utm_medium').toLowerCase() : getStored('utm_medium');\n  \n  // Paid social detection - requires explicit UTM tagging since fbclid alone catches organic posts too\n  // Convention: utm_medium=paid_social with utm_source identifying the platform\n  if (utmMedium === 'paid_social') {\n    if (utmSource === 'facebook') return 'facebook_ads';\n    if (utmSource === 'instagram') return 'instagram_ads';\n    if (utmSource === 'linkedin') return 'linkedin_ads';\n    if (utmSource === 'tiktok') return 'tiktok_ads';\n    // Fallback for any other paid social platform we haven't bucketed\n    return utmSource + '_ads';\n  }\n  \n  // Google Ads - check URL gclid, then stored gclid, then _gcl_aw cookie set by gtag auto-tagging\n  if (urlParams.get('gclid') || getStored('gclid')) return 'google_ads';\n  if (document.cookie.indexOf('_gcl_aw=') > -1) return 'google_ads';\n  \n  // Microsoft Ads - msclkid is reliable on its own\n  if (urlParams.get('msclkid') || getStored('msclkid')) return 'microsoft_ads';\n  \n  // TikTok Ads - ttclid is reliable on its own (TikTok organic posts don't append it)\n  if (urlParams.get('ttclid') || getStored('ttclid')) return 'tiktok_ads';\n  \n  // Generic UTM source fallback - catches email, partnerships, custom campaigns\n  // Combines source and medium for clarity (e.g. email_newsletter, partner_referral)\n  if (utmSource) {\n    return utmMedium ? utmSource + '_' + utmMedium : utmSource;\n  }\n  \n  // Facebook organic - fbclid present without paid_social UTM means it came from an organic post\n  if (urlParams.get('fbclid') || getStored('fbclid')) return 'facebook_organic';\n  \n  // STEP 3: Organic referrer detection - use original referrer from session storage if available\n  // This makes organic attribution survive multi-page funnels where document.referrer becomes self-referential\n  var sourceReferrer = getStored('original_referrer') || referrer;\n  \n  if (sourceReferrer.indexOf('google.') > -1) return 'google_organic';\n  if (sourceReferrer.indexOf('bing.') > -1) return 'bing_organic';\n  if (sourceReferrer.indexOf('yahoo.') > -1) return 'yahoo_organic';\n  if (sourceReferrer.indexOf('duckduckgo.') > -1) return 'duckduckgo_organic';\n  if (sourceReferrer.indexOf('facebook.') > -1 || sourceReferrer.indexOf('fb.') > -1) return 'facebook_organic';\n  if (sourceReferrer.indexOf('instagram.') > -1) return 'instagram_organic';\n  if (sourceReferrer.indexOf('linkedin.') > -1) return 'linkedin_organic';\n  if (sourceReferrer.indexOf('twitter.') > -1 || sourceReferrer.indexOf('x.com') > -1) return 'twitter_organic';\n  if (sourceReferrer.indexOf('youtube.') > -1) return 'youtube_organic';\n  if (sourceReferrer.indexOf('reddit.') > -1) return 'reddit_organic';\n  if (sourceReferrer.indexOf('pinterest.') > -1) return 'pinterest_organic';\n  if (sourceReferrer.indexOf('tiktok.') > -1) return 'tiktok_organic';\n  \n  // No referrer at all = direct (typed URL, bookmark, app, dark social, email client)\n  if (!sourceReferrer) return 'direct';\n  \n  // Same-domain referrer with no other signals = direct (internal navigation from unknown origin)\n  if (sourceReferrer.indexOf(window.location.hostname) > -1) return 'direct';\n  \n  // External referring site we don't have a specific bucket for\n  return 'referral';\n}"
+                    }
+                ],
+                "fingerprint": "1778608374398",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "34",
+                "name": "cJS - Placement",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // Captures utm_placement from URL on first pageview, persists via sessionStorage.\n  // Handles both Meta placements (e.g. \"Audience_Network_Native\", \"Facebook_Mobile_Feed\")\n  // and Google Ads placements (e.g. \"g_1t1\" for top-of-page search, \"gmb_\" for Business Profile,\n  // \"d_\" for Display Network). The variable doesn't care which platform set the value \u2014\n  // utm_source already tells you that. This just captures whatever placement was passed.\n  \n  var STORAGE_KEY = 'ad_placement';\n  \n  try {\n    // First, check if utm_placement is in the current URL.\n    // If yes, this is the freshest signal \u2014 overwrite anything stored.\n    var urlParams = new URLSearchParams(window.location.search);\n    var placementFromUrl = urlParams.get('utm_placement');\n    \n    if (placementFromUrl) {\n      try { sessionStorage.setItem(STORAGE_KEY, placementFromUrl); } catch(e) {}\n      return placementFromUrl;\n    }\n    \n    // No utm_placement in current URL \u2014 fall back to whatever we stored\n    // earlier in this session (e.g. from the original landing page).\n    try {\n      var stored = sessionStorage.getItem(STORAGE_KEY);\n      if (stored) return stored;\n    } catch(e) {}\n    \n    // No URL value, no stored value \u2014 return undefined.\n    // GA4 will simply omit the parameter rather than send an empty string.\n    return undefined;\n    \n  } catch (e) {\n    // URLSearchParams unavailable (very old browsers) or other failure\n    return undefined;\n  }\n}"
+                    }
+                ],
+                "fingerprint": "1778608401173",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "38",
+                "name": "cJS - GHL Email (Normalized)",
+                "type": "jsm",
+                "parameter": [
+                    {
+                        "type": "TEMPLATE",
+                        "key": "javascript",
+                        "value": "function() {\n  // Normalize email before it hits any pixel \u2014 trim whitespace and lowercase.\n  // Meta and Google both require this format before hashing for matching.\n  var email = {{DLV - GHL Email}};\n  if (!email || typeof email !== 'string') return undefined;\n  return email.trim().toLowerCase();\n}"
+                    }
+                ],
+                "fingerprint": "1778609132812",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "39",
+                "name": "DLV - GHL Event ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_event_id"
+                    }
+                ],
+                "fingerprint": "1778609489693",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "40",
+                "name": "DLV - GHL Form Name",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_form_name"
+                    }
+                ],
+                "fingerprint": "1778610866963",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "41",
+                "name": "DLV - GHL Country",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_country"
+                    }
+                ],
+                "fingerprint": "1778610886227",
+                "formatValue": {}
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "variableId": "45",
+                "name": "DLV - GHL Submission ID",
+                "type": "v",
+                "parameter": [
+                    {
+                        "type": "INTEGER",
+                        "key": "dataLayerVersion",
+                        "value": "2"
+                    },
+                    {
+                        "type": "BOOLEAN",
+                        "key": "setDefaultValue",
+                        "value": "false"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "name",
+                        "value": "ghl_submission_id"
+                    }
+                ],
+                "fingerprint": "1778610979785",
+                "formatValue": {}
+            }
+        ],
+        "builtInVariable": [
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_ELEMENT",
+                "name": "Form Element"
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_CLASSES",
+                "name": "Form Classes"
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_ID",
+                "name": "Form ID"
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_TARGET",
+                "name": "Form Target"
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_URL",
+                "name": "Form URL"
+            },
+            {
+                "accountId": "0000000000",
+                "containerId": "000000000",
+                "type": "FORM_TEXT",
+                "name": "Form Text"
+            }
+        ],
+        "fingerprint": "1778617291952"
+    }
+}
