@@ -1,4 +1,14 @@
 <script>
+
+/* 
+ * GHL Form Submit Bridge
+ * Loaded from https://github.com/whboggs/marketing-toolkit
+ * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
+ *
+ * MIT License — Copyright (c) 2026 W.H. Boggs
+ * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
+*/
+  
 (function() {
   // localStorage dedup — persists across sessions so the prefill rebroadcast
   // that GHL sends for returning contacts doesn't re-fire a Lead event.
