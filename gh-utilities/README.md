@@ -5,7 +5,7 @@ Reference file for the creator.
 ### HTML
 ```
 <!-- 
-  GHL Form Submit Bridge
+  SCRIPTNAME
   Loaded from https://github.com/whboggs/marketing-toolkit
   Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
 
@@ -17,11 +17,10 @@ Reference file for the creator.
 ### JavaScript
 ```
 /*! 
- * GHL Form Submit Bridge
+ * SCRIPTNAME
  * Loaded from https://github.com/whboggs/marketing-toolkit
  *
- * Fixes GoHighLevel's unreliable Meta conversion tracking by capturing
- * form submissions and pushing them to dataLayer for GTM/Meta CAPI.
+ * DESCRIPTION
  *
  * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
  *
