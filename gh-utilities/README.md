@@ -28,3 +28,13 @@ Reference file for the creator.
  * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
 */
 ```
+
+## JS Delivr
+```
+<script>
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/code-library@main/PASTEPATH';
+  s.async = true;
+  document.head.appendChild(s);
+</script>
+```
