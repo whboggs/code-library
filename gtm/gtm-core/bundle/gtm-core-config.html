@@ -1,0 +1,34 @@
+<!--
+  Marketing Toolkit — GTM Core Config v1.0.0
+  https://github.com/whboggs/marketing-toolkit
+
+  Created by W.H. Boggs — https://whboggs.com
+  → Free Meta Ads audit: https://whboggs.com/audit
+
+  Installation:
+  1. Create a Custom HTML tag in GTM and paste this entire snippet
+  2. Set trigger to "All Pages — Page View"
+  3. Edit the booleans below to enable the scripts you want
+  4. Save, preview, and publish
+
+  All scripts default to false (opt-in).
+  Setting a script to true loads it on every page.
+
+  MIT License | Copyright (c) 2026 W.H. Boggs
+-->
+<script>
+  // Marketing Toolkit configuration
+  // Set scripts to true to enable, false to disable
+  // ES5 syntax used here because GTM Custom HTML tags wrap this code
+  window.mtConfig = {
+    ad_placement: false,     // Captures utm_placement from URL, persists across pageviews
+    traffic_source: false    // Last-touch traffic source with paid/organic detection
+  };
+
+  // Bootstrap loader — DO NOT EDIT BELOW THIS LINE
+  // Pinned to @v1 for automatic updates within the v1.x release line
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@v1/gtm/gtm-core/bundle/gtm-core-bootstrap.js';
+  s.async = true;
+  document.head.appendChild(s);
+</script>
