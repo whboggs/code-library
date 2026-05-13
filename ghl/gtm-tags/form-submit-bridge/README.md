@@ -3,25 +3,6 @@
 External bridge that listens for GoHighLevel iframe form submits and pushes
 to the GTM dataLayer.
 
-## GTM tag content
-
-Custom HTML tag, paste this exactly:
-
-\`\`\`html
-<script>
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/code-library@main/ghl/form-submit-bridge.js';
-  s.async = true;
-  document.head.appendChild(s);
-</script>
-\`\`\`
-
-## GTM tag settings
-
-- Trigger: All Pages (Page View)
-- Fire once per page: checked
-- Support document.write: unchecked
-
 ## Required GTM variables
 
 DLV variables (Data Layer Variable type, name → key):
@@ -37,6 +18,28 @@ DLV variables (Data Layer Variable type, name → key):
 - DLV - GHL Form Data → ghl_form_data
 
 ## Custom JS variables
+*Find these in gtm-core*
+- cJS - GHL Email (Normalized)
+- cJS - GHL Phone (E.164)
 
-See cJS - GHL Email (Normalized) and cJS - GHL Phone (E.164) for value normalization
-before sending to Meta / Google.
+## GTM tag content
+### (Option 1) Auto-Update Version
+Custom HTML tag, paste this exactly:
+
+```
+<script>
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/code-library@main/ghl/form-submit-bridge.js';
+  s.async = true;
+  document.head.appendChild(s);
+</script>
+```
+### (Option 2) Manual Update Version
+1. Create a Custom HTML Tag
+2. Copy/Paste from form-submit-bridge.js
+
+## GTM tag settings
+
+- Trigger: All Pages (Page View)
+- Fire once per page: checked
+- Support document.write: unchecked
