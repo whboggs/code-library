@@ -1,6 +1,6 @@
 <script>
 
-/* 
+/*! 
  * GHL Form Submit Bridge
  * Loaded from https://github.com/whboggs/marketing-toolkit
  * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
