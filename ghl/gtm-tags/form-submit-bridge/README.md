@@ -27,6 +27,15 @@ DLV variables (Data Layer Variable type, name → key):
 Custom HTML tag, paste this exactly:
 
 ```
+<!-- 
+  GHL Form Submit Bridge
+  Loaded from https://github.com/whboggs/marketing-toolkit
+  Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
+
+  MIT License — Copyright (c) 2026 W.H. Boggs
+  https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
+-->
+
 <script>
   var s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/gh/whboggs/code-library@main/ghl/form-submit-bridge.js';
