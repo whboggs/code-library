@@ -1,10 +1,21 @@
 function() {
-  // Captures utm_placement from URL on first pageview, persists via sessionStorage.
-  // Handles both Meta placements (e.g. "Audience_Network_Native", "Facebook_Mobile_Feed")
-  // and Google Ads placements (e.g. "g_1t1" for top-of-page search, "gmb_" for Business Profile,
-  // "d_" for Display Network). The variable doesn't care which platform set the value —
-  // utm_source already tells you that. This just captures whatever placement was passed.
-  
+
+/*! 
+ * CJS - Placement
+ * Loaded from https://github.com/whboggs/marketing-toolkit
+ *
+ * Captures utm_placement from URL on first pageview, persists via sessionStorage.
+ * Handles both Meta placements (e.g. "Audience_Network_Native", "Facebook_Mobile_Feed")
+ * and Google Ads placements (e.g. "g_1t1" for top-of-page search, "gmb_" for Business Profile,
+ * "d_" for Display Network). The variable doesn't care which platform set the value —
+ * utm_source already tells you that. This just captures whatever placement was passed.
+ *
+ * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
+ *
+ * MIT License — Copyright (c) 2026 W.H. Boggs
+ * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
+*/
+ 
   var STORAGE_KEY = 'ad_placement';
   
   try {
