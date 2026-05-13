@@ -143,7 +143,3 @@ For most flows this is fine — the new tab usually opens with the source URL in
 - **Variable type:** Custom JavaScript
 - **Variable name:** cJS - Traffic Source
 - **Return type:** String
-
-### Tag Implementation — Lead Event
-
-```javascript
