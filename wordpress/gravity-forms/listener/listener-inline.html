@@ -1,0 +1,54 @@
+<!--
+  Marketing Toolkit — Gravity Forms GTM Listener (Inline) v1.0.0
+  https://github.com/whboggs/marketing-toolkit
+
+  Packaged by W.H. Boggs — https://whboggs.com
+  → Free Meta Ads audit: https://whboggs.com/audit
+
+  MIT License | Copyright (c) 2026 W.H. Boggs
+
+  Self-contained version — no CDN dependency. Paste into a GTM Custom
+  HTML tag set to fire on All Pages — Page View. Updates do not push
+  automatically; re-paste this file to upgrade.
+-->
+<script>
+  (function () {
+    window.dataLayer = window.dataLayer || [];
+
+    var attempts = 0;
+    var maxAttempts = 50; // ~5s at 100ms intervals
+
+    function bind() {
+      var $ = window.jQuery;
+      if (!$) {
+        if (++attempts >= maxAttempts) {
+          console.warn('[mt] Gravity Forms listener: jQuery never loaded, aborting');
+          return;
+        }
+        setTimeout(bind, 100);
+        return;
+      }
+
+      // Fires when an AJAX-submitted Gravity Form displays its confirmation
+      // https://docs.gravityforms.com/gform_confirmation_loaded/
+      $(document).on('gform_confirmation_loaded', function (event, formId) {
+        window.dataLayer.push({
+          event: 'gforms_form_success',
+          gforms_form_id: formId
+        });
+      });
+
+      // Fires when a user navigates to a new page in a multi-page form
+      // https://docs.gravityforms.com/gform_page_loaded/
+      $(document).on('gform_page_loaded', function (event, formId, currentPage) {
+        window.dataLayer.push({
+          event: 'gforms_page_loaded',
+          gforms_form_id: formId,
+          gforms_current_page: currentPage
+        });
+      });
+    }
+
+    bind();
+  })();
+</script>
