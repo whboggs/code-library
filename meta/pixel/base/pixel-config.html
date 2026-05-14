@@ -13,12 +13,12 @@
   // Pass the Pixel ID from the GTM Constant Variable into the global namespace
   // The hosted script reads from window.mtMetaPixel
   window.mtMetaPixel = window.mtMetaPixel || {};
-  window.mtMetaPixel.pixel_id = {{Meta Pixel ID}};
+  window.mtMetaPixel.pixel_id = '{{Meta Pixel ID}}';
 
   // Load the hosted Meta Pixel script from CDN
-  // Pinned to @v1 for automatic updates within the v1.x release line
+  // Pointed at @main for testing — switch to @v1 once a v1.x.x tag is published
   var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@v1/meta/pixel/base/pixel-config.js';
+  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@main/meta/pixel/base/pixel-config.js';
   s.async = true;
   document.head.appendChild(s);
 </script>
