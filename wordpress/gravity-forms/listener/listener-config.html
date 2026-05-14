@@ -1,0 +1,18 @@
+<!--
+  Marketing Toolkit — Gravity Forms GTM Listener v1.0.0
+  https://github.com/whboggs/marketing-toolkit
+
+  Packaged by W.H. Boggs — https://whboggs.com
+  → Free Meta Ads audit: https://whboggs.com/audit
+
+  MIT License | Copyright (c) 2026 W.H. Boggs
+-->
+<script>
+  // ES5 — runs inside GTM Custom HTML tag wrapper
+  // Loads the hosted listener that pushes Gravity Forms events to dataLayer
+  // Pointed at @main for testing — switch to @v1 once a v1.x.x tag is published
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@main/wordpress/gravity-forms/listener/listener-config.js';
+  s.async = true;
+  document.head.appendChild(s);
+</script>
