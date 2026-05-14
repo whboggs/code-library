@@ -11,6 +11,15 @@ Binds jQuery handlers to Gravity Forms' client-side hooks and pushes a normalize
 | `gform_confirmation_loaded` | `gforms_form_success` | `gforms_form_id` |
 | `gform_page_loaded` | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
 
+## Two install options
+
+Pick one — they produce identical dataLayer events.
+
+| File | Pattern | When to use |
+|---|---|---|
+| `listener-config.html` | CDN loader (fetches hosted JS from jsDelivr) | Default. Updates push automatically. |
+| `listener-inline.html` | Self-contained (logic inlined into the tag) | No outbound CDN dependency. Re-paste to upgrade. |
+
 ## Installation
 
 ### Step 1: Create the Custom HTML tag
@@ -18,7 +27,7 @@ Binds jQuery handlers to Gravity Forms' client-side hooks and pushes a normalize
 In GTM, go to **Tags** → **New**:
 
 1. Click **Tag Configuration** → choose **Custom HTML**
-2. Paste the contents of `listener-config.html` into the HTML field
+2. Paste the contents of `listener-config.html` **or** `listener-inline.html` into the HTML field
 3. Click **Triggering** → choose **All Pages — Page View**
 4. Name the tag: `cHTML - Gravity Forms Listener`
 5. Save
