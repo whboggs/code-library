@@ -1,5 +1,5 @@
 <!--
-  Marketing Toolkit — Gravity Forms GTM Listener (Inline) v1.1.0
+  Marketing Toolkit — Gravity Forms GTM Listener (Inline) v1.2.0
   https://github.com/whboggs/marketing-toolkit
 
   Packaged by W.H. Boggs — https://whboggs.com
@@ -37,6 +37,46 @@
     document.addEventListener('gform/ajax/post_page_change', function (e) {
       var d = e.detail || {};
       pushOnce('gforms_page_loaded', d.formId, d.pageNumber);
+    });
+
+    // Field completion: blur on a GF input with a non-empty value. Uses
+    // focusout (bubbles) for delegation. Values are NOT pushed — they may
+    // contain PII. Dedupe per field on value so re-tabbing the same field
+    // without editing it doesn't push twice.
+    var lastFieldValue = {};
+    var SKIP_TYPES = { hidden: 1, submit: 1, button: 1, reset: 1, file: 1, image: 1 };
+    document.addEventListener('focusout', function (e) {
+      var target = e.target;
+      if (!target || !target.tagName || !target.closest) return;
+      var tag = target.tagName.toLowerCase();
+      if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') return;
+      if (SKIP_TYPES[(target.type || '').toLowerCase()]) return;
+      if (!target.closest('.gform_wrapper')) return;
+      var value = (target.value || '').replace(/^\s+|\s+$/g, '');
+      if (!value) return;
+
+      var formId = null;
+      var fieldId = null;
+      var fieldEl = target.closest('.gfield');
+      if (fieldEl && fieldEl.id) {
+        var m = fieldEl.id.match(/^field_(\d+)_(\d+)$/);
+        if (m) { formId = m[1]; fieldId = m[2]; }
+      }
+      if (!formId) {
+        var form = target.closest('form');
+        formId = form && form.getAttribute('data-formid');
+      }
+      if (!formId || !fieldId) return;
+
+      var key = formId + ':' + fieldId;
+      if (lastFieldValue[key] === value) return;
+      lastFieldValue[key] = value;
+
+      window.dataLayer.push({
+        event: 'gforms_field_complete',
+        gforms_form_id: formId,
+        gforms_field_id: fieldId
+      });
     });
 
     // GF 2.9+ filter API: AJAX submission completion. The filter also runs
