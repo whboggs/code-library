@@ -8,8 +8,10 @@ Subscribes to Gravity Forms' client-side hooks — both the legacy jQuery events
 
 | Gravity Forms hook | dataLayer event | dataLayer variables |
 |---|---|---|
+| `submit` on a GF form (any submission method) | `gforms_form_submit` | `gforms_form_id`, `gforms_fields` |
 | `gform_confirmation_loaded` (jQuery, ≤2.8 + 2.9 compat) | `gforms_form_success` | `gforms_form_id` |
 | `gform/ajax/post_ajax_submission` (native filter, 2.9+) | `gforms_form_success` | `gforms_form_id` |
+| `gform_confirmation_message_{id}` element on page load (non-AJAX) | `gforms_form_success` | `gforms_form_id` |
 | `gform_page_loaded` (jQuery, ≤2.8 + 2.9 compat) | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
 | `gform/ajax/post_page_change` (native event, 2.9+) | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
 | `focusout` on a GF input with a non-empty value | `gforms_field_complete` | `gforms_form_id`, `gforms_field_id` |
@@ -64,6 +66,22 @@ Example — fire a Meta Pixel Lead event when any Gravity Form succeeds:
 
 To fire only for a specific form, add a trigger condition: `DLV - GF Form ID equals 3`.
 
+### Capturing hidden field values (fbc, gclid, utm_*) for Meta CAPI / GA4
+
+`gforms_form_submit` fires on every Gravity Forms submission (AJAX or not) and includes a `gforms_fields` object with every **user-defined hidden field** in the form, keyed by HTML `name`. GF's own internal hiddens (`gform_submit`, `state_*`, `_wp_http_referer`, etc.) are skipped. Visible inputs (text, email, radio, etc.) are **not** included — see "Known limitations" below.
+
+Typical Meta Pixel CAPI flow:
+
+1. In Gravity Forms, add a Hidden field to your form. Note its field ID (e.g., field 20).
+2. Populate it with the visitor's `fbc` using `gform_field_value_*` server-side, or via the field's "Allow field to be populated dynamically" parameter and a URL parameter / JS snippet.
+3. In GTM, create a Data Layer Variable:
+   - **Variable Type:** Data Layer Variable
+   - **Data Layer Variable Name:** `gforms_fields.input_20` (replace `20` with your field ID)
+   - **Name:** `DLV - GF fbc`
+4. In your Meta Pixel Lead tag (triggered on `gforms_form_submit`), pass `{{DLV - GF fbc}}` as the `fbc` user-data parameter.
+
+The submit event fires *before* the form navigates away on non-AJAX forms, so GA4 / Meta tags using `sendBeacon` or `keepalive` (the GTM default) will reliably deliver.
+
 ### Step 5: Preview and publish
 
 1. Click **Preview** to test in Tag Assistant
@@ -76,8 +94,9 @@ The listener logic is hosted on jsDelivr and currently pulled from `@main` for t
 
 ## Known limitations
 
-- **AJAX submissions only (for success/page-loaded events)**: `gforms_form_success` and `gforms_page_loaded` fire only when the form is configured to submit via AJAX (the "Enable AJAX" checkbox in the form's embed shortcode or block). For non-AJAX forms the page reloads to a confirmation URL — track those with a URL-based GTM trigger instead. `gforms_field_complete` works for any form, AJAX or not.
-- **`gforms_field_complete` never includes the field value**: To avoid pushing PII (emails, names, phone numbers) into the dataLayer, only `gforms_form_id` and `gforms_field_id` are pushed. Filter or enrich downstream in GTM if you need more context.
+- **Non-AJAX `gforms_form_success` requires the default "Display Message" confirmation type**: The non-AJAX detector looks for `<div id="gform_confirmation_message_{formId}">` on the confirmation page. If the form is configured to redirect to a different URL on success, that page won't contain the marker — track those with a URL-based GTM trigger on the destination page. AJAX forms always work regardless of confirmation type.
+- **`gforms_form_submit` only captures hidden fields, not visible ones**: To avoid leaking PII (emails, names, phone, free-text answers) into the dataLayer and every downstream GTM tag, only `input[type=hidden]` user fields are included. Visible inputs are intentionally skipped. If you need a specific visible field's value downstream, extract it in a dedicated GTM Custom JavaScript variable scoped to that field.
+- **`gforms_field_complete` never includes the field value**: Same PII reasoning — only `gforms_form_id` and `gforms_field_id` are pushed. Use `gforms_form_submit` if you need values.
 - **jQuery optional on GF 2.9+**: On Gravity Forms 2.9 and newer the listener uses the native `gform/...` events and works without jQuery. On older versions (or 2.9 with the legacy submission path) the jQuery handlers are used; if jQuery has been stripped out and the site is also on legacy GF, the listener cannot bind.
 - **No per-form filtering at the listener level**: Every form ID pushes the same dataLayer event. Filter in your downstream GTM trigger conditions using `gforms_form_id` if you only want to fire for specific forms.
 

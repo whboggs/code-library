@@ -1,5 +1,5 @@
 <!--
-  Marketing Toolkit — Gravity Forms GTM Listener (Inline) v1.2.0
+  Marketing Toolkit — Gravity Forms GTM Listener (Inline) v1.3.0
   https://github.com/whboggs/marketing-toolkit
 
   Packaged by W.H. Boggs — https://whboggs.com
@@ -94,6 +94,47 @@
         return data;
       });
       return true;
+    }
+
+    // Form submit: capture user-defined hidden fields (fbc, gclid, utm_*).
+    // Fires on the DOM submit event (capture phase) so values are available
+    // before any navigation. GF's own internal hiddens (gform_submit, state_*,
+    // _wp_http_referer, etc.) are skipped — only inputs named input_* (the
+    // pattern GF assigns to user fields) are captured.
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form || !form.closest || !form.closest('.gform_wrapper')) return;
+      var formId = form.getAttribute('data-formid')
+        || (form.id && form.id.replace(/^gform_/, ''));
+      if (!formId) return;
+      var fields = {};
+      var hiddens = form.querySelectorAll('input[type="hidden"][name^="input_"]');
+      for (var i = 0; i < hiddens.length; i++) {
+        fields[hiddens[i].name] = hiddens[i].value;
+      }
+      window.dataLayer.push({
+        event: 'gforms_form_submit',
+        gforms_form_id: String(formId),
+        gforms_fields: fields
+      });
+    }, true);
+
+    // Non-AJAX confirmation: detect the confirmation message on page load.
+    // GF reloads the page with the form replaced by
+    // <div id="gform_confirmation_message_{formId}">...</div>. AJAX paths
+    // still push success via the filter / jQuery handlers below; pushOnce
+    // dedupes if both fire.
+    function checkConfirmation() {
+      var els = document.querySelectorAll('[id^="gform_confirmation_message_"]');
+      for (var i = 0; i < els.length; i++) {
+        var m = els[i].id.match(/^gform_confirmation_message_(\d+)$/);
+        if (m) pushOnce('gforms_form_success', m[1]);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkConfirmation, { once: true });
+    } else {
+      checkConfirmation();
     }
 
     // Legacy jQuery events (pre-2.9; still fire on 2.9 with compat shim)
