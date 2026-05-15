@@ -1,5 +1,5 @@
 /*!
- * Marketing Toolkit — Gravity Forms GTM Listener v1.1.0
+ * Marketing Toolkit — Gravity Forms GTM Listener v1.2.0
  * https://github.com/whboggs/marketing-toolkit
  *
  * Packaged by W.H. Boggs — https://whboggs.com
@@ -33,6 +33,47 @@
   document.addEventListener('gform/ajax/post_page_change', function (e) {
     const d = e.detail || {};
     pushOnce('gforms_page_loaded', d.formId, d.pageNumber);
+  });
+
+  // ── Field completion: blur on a GF input with a non-empty value ──────────
+  // Uses focusout (bubbles) for delegation. Values are NOT pushed — they may
+  // contain PII (emails, names, phone). Dedupe per field on value so re-
+  // tabbing the same field without editing it doesn't push twice.
+  const lastFieldValue = new Map();
+  const SKIP_TYPES = new Set(['hidden', 'submit', 'button', 'reset', 'file', 'image']);
+  document.addEventListener('focusout', function (e) {
+    const target = e.target;
+    if (!target || !target.tagName || !target.closest) return;
+    const tag = target.tagName.toLowerCase();
+    if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') return;
+    if (SKIP_TYPES.has((target.type || '').toLowerCase())) return;
+    if (!target.closest('.gform_wrapper')) return;
+    const value = (target.value || '').trim();
+    if (!value) return;
+
+    // GF wraps each field in <.gfield id="field_{formId}_{fieldId}">
+    let formId = null;
+    let fieldId = null;
+    const fieldEl = target.closest('.gfield');
+    if (fieldEl && fieldEl.id) {
+      const m = fieldEl.id.match(/^field_(\d+)_(\d+)$/);
+      if (m) { formId = m[1]; fieldId = m[2]; }
+    }
+    if (!formId) {
+      const form = target.closest('form');
+      formId = form && form.getAttribute('data-formid');
+    }
+    if (!formId || !fieldId) return;
+
+    const key = formId + ':' + fieldId;
+    if (lastFieldValue.get(key) === value) return;
+    lastFieldValue.set(key, value);
+
+    window.dataLayer.push({
+      event: 'gforms_field_complete',
+      gforms_form_id: formId,
+      gforms_field_id: fieldId
+    });
   });
 
   // ── GF 2.9+ filter API: AJAX submission completion ────────────────────────
