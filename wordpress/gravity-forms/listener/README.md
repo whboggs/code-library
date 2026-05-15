@@ -4,12 +4,14 @@ Pushes Gravity Forms front-end events to `window.dataLayer` so GTM Custom Event 
 
 ## What it does
 
-Binds jQuery handlers to Gravity Forms' client-side hooks and pushes a normalized event to the GTM dataLayer.
+Subscribes to Gravity Forms' client-side hooks — both the legacy jQuery events (pre-2.9) and the native `gform/...` CustomEvents / filter API introduced in 2.9 — and pushes a normalized event to the GTM dataLayer. Duplicate pushes are suppressed when both paths fire for the same submission.
 
 | Gravity Forms hook | dataLayer event | dataLayer variables |
 |---|---|---|
-| `gform_confirmation_loaded` | `gforms_form_success` | `gforms_form_id` |
-| `gform_page_loaded` | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
+| `gform_confirmation_loaded` (jQuery, ≤2.8 + 2.9 compat) | `gforms_form_success` | `gforms_form_id` |
+| `gform/ajax/post_ajax_submission` (native filter, 2.9+) | `gforms_form_success` | `gforms_form_id` |
+| `gform_page_loaded` (jQuery, ≤2.8 + 2.9 compat) | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
+| `gform/ajax/post_page_change` (native event, 2.9+) | `gforms_page_loaded` | `gforms_form_id`, `gforms_current_page` |
 
 ## Two install options
 
@@ -73,8 +75,8 @@ The listener logic is hosted on jsDelivr and currently pulled from `@main` for t
 
 ## Known limitations
 
-- **AJAX submissions only**: `gform_confirmation_loaded` only fires when the form is configured to submit via AJAX (the "Enable AJAX" checkbox in the form's embed shortcode or block). For non-AJAX forms the page reloads to a confirmation URL — track those with a URL-based GTM trigger instead.
-- **Requires jQuery**: Gravity Forms loads jQuery by default. If you've stripped it out (e.g., via a "remove jQuery" performance plugin), this listener warns in console and exits without binding.
+- **AJAX submissions only**: All of these hooks fire only when the form is configured to submit via AJAX (the "Enable AJAX" checkbox in the form's embed shortcode or block). For non-AJAX forms the page reloads to a confirmation URL — track those with a URL-based GTM trigger instead.
+- **jQuery optional on GF 2.9+**: On Gravity Forms 2.9 and newer the listener uses the native `gform/...` events and works without jQuery. On older versions (or 2.9 with the legacy submission path) the jQuery handlers are used; if jQuery has been stripped out and the site is also on legacy GF, the listener cannot bind.
 - **No per-form filtering at the listener level**: Every form ID pushes the same dataLayer event. Filter in your downstream GTM trigger conditions using `gforms_form_id` if you only want to fire for specific forms.
 
 ## Disclaimer
