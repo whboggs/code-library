@@ -1,0 +1,55 @@
+<!--
+  Marketing Toolkit — Gravity Forms fbc/fbp Populator (JS fallback) v1.0.0
+  https://github.com/whboggs/marketing-toolkit
+
+  Packaged by W.H. Boggs — https://whboggs.com
+  → Free Meta Ads audit: https://whboggs.com/audit
+
+  MIT License | Copyright (c) 2026 W.H. Boggs
+
+  Use this ONLY if a page cache (LiteSpeed, WP Rocket, host-level) serves
+  the form HTML to multiple visitors. The PHP filter approach (populator.php)
+  runs server-side per request and is more reliable when no shared cache
+  sits between PHP and the visitor.
+
+  Configuration:
+    Edit MAPPINGS below — left side is the form input's HTML name (input_N
+    where N is your hidden field's ID in Gravity Forms), right side is the
+    cookie to read. Add more pairs if you have additional cookies to capture.
+
+  Install:
+    Paste into a GTM Custom HTML tag set to fire on All Pages — Page View.
+-->
+<script>
+  (function () {
+    // input HTML name → cookie name
+    var MAPPINGS = {
+      'input_18': '_fbc',
+      'input_17': '_fbp'
+    };
+
+    function readCookie(name) {
+      var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? decodeURIComponent(m[2]) : '';
+    }
+
+    function populate() {
+      var wrappers = document.querySelectorAll('.gform_wrapper');
+      for (var w = 0; w < wrappers.length; w++) {
+        var inputs = wrappers[w].querySelectorAll('input[type="hidden"]');
+        for (var i = 0; i < inputs.length; i++) {
+          var cookie = MAPPINGS[inputs[i].name];
+          if (!cookie) continue;
+          var value = readCookie(cookie);
+          if (value) inputs[i].value = value;
+        }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', populate, { once: true });
+    } else {
+      populate();
+    }
+  })();
+</script>
