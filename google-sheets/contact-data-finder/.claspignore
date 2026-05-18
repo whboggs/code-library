@@ -1,0 +1,7 @@
+# clasp push will only upload files matching the Apps Script-compatible types
+# below; everything else is ignored. Listed here explicitly to keep README/docs
+# and the clasp config itself out of the project.
+**/**
+!appsscript.json
+!*.gs
+!*.html

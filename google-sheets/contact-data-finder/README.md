@@ -29,7 +29,7 @@ Built for situations where contact data is scattered across many tabs — event 
 1. Open your Google Sheet
 2. Go to **Extensions → Apps Script**
 3. Delete any boilerplate code in `Code.gs`
-4. Paste in the contents of [`get-contacts.gs`](./get-contacts.gs)
+4. Paste in the contents of [`contact-data-finder.gs`](./contact-data-finder.gs)
 5. Save with `Cmd+S` (Mac) or `Ctrl+S` (Windows)
 6. Close the Apps Script tab and return to your sheet
 
@@ -147,6 +147,55 @@ if (digits.length === 10) {
   return `1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 ```
+
+## Develop with clasp
+
+If you want to edit the function in your editor and push it to Apps Script instead of copy-pasting through the web IDE, this folder is set up for [clasp](https://github.com/google/clasp).
+
+### One-time setup
+
+```bash
+npm install -g @google/clasp
+clasp login
+```
+
+### Create a fresh standalone Apps Script project
+
+From the repo root:
+
+```bash
+cd google-sheets/contact-data-finder
+clasp create --type standalone --title "Contact Data Finder" --rootDir .
+```
+
+`clasp create` writes a `.clasp.json` into this folder with the new project's `scriptId`. Commit that file so future pushes from any clone go to the same script. The `appsscript.json` manifest in this folder is what clasp will push as the project manifest.
+
+### Push changes after editing
+
+```bash
+clasp push
+```
+
+### Clone an existing Apps Script project instead
+
+If you already have a Contact Data Finder project in Apps Script, grab its `scriptId` from the project URL (`script.google.com/d/<scriptId>/edit`) and run:
+
+```bash
+cd google-sheets/contact-data-finder
+clasp clone <scriptId> --rootDir .
+```
+
+### Publish as a library so other Sheets can reference it
+
+1. After `clasp push`, open the project: `clasp open`
+2. In the Apps Script editor: **Deploy → New deployment → Library**
+3. Set a version description, click **Deploy**, and copy the **Script ID** shown
+4. In any consuming Sheet's Apps Script editor: **Resources → Libraries → Add a library** → paste the script ID → pick the version → save
+5. Reference functions as `ContactDataFinder.GET_CONTACTS()` (identifier is set in the consuming script's Libraries dialog)
+
+### What clasp pushes
+
+`.claspignore` in this folder restricts the push to `appsscript.json` and `*.gs`/`*.html` files. README, license, and clasp config itself stay out of the deployed project.
 
 ## License
 
