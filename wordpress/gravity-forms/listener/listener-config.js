@@ -1,5 +1,5 @@
 /*!
- * Marketing Toolkit — Gravity Forms GTM Listener v1.3.0
+ * Marketing Toolkit — Gravity Forms GTM Listener v1.3.1
  * https://github.com/whboggs/marketing-toolkit
  *
  * Packaged by W.H. Boggs — https://whboggs.com
@@ -77,17 +77,35 @@
   });
 
   // ── GF 2.9+ filter API: AJAX submission completion ────────────────────────
-  // Registered through gform.utils.addFilter, not addEventListener. The filter
-  // also runs for validation failures, so only push when a confirmation is
-  // actually being displayed.
+  // Registered through gform.utils.addFilter, not addEventListener. data.form
+  // is the DOM <form> element, so the numeric id is data.form.dataset.formid
+  // — data.form.id is the HTML id ("gform_5"). The filter also runs for
+  // validation failures, so only push when submissionResult marks a
+  // confirmation.
   // https://docs.gravityforms.com/gform-ajax-post_ajax_submission/
+  function ajaxFormId(data) {
+    if (!data) return null;
+    const f = data.form;
+    if (f) {
+      if (f.dataset && f.dataset.formid) return f.dataset.formid;
+      if (typeof f.getAttribute === 'function') {
+        const attr = f.getAttribute('data-formid');
+        if (attr) return attr;
+      }
+      if (typeof f.id === 'string') {
+        const m = f.id.match(/^gform_(\d+)$/);
+        if (m) return m[1];
+      }
+    }
+    return data.formId != null ? String(data.formId) : null;
+  }
   function bindNative() {
     const utils = window.gform && window.gform.utils;
     if (!utils || typeof utils.addFilter !== 'function') return false;
     utils.addFilter('gform/ajax/post_ajax_submission', function (data) {
-      const formId = data && data.form && data.form.id;
+      const formId = ajaxFormId(data);
       const result = data && data.submissionResult;
-      if (result && (result.confirmation_message || result.confirmation_redirect)) {
+      if (result && (result.is_confirmation || result.confirmation_message || result.confirmation_redirect)) {
         pushOnce('gforms_form_success', formId);
       }
       return data;
