@@ -6,7 +6,7 @@
 - ATC Rate: Adds to cart / Link Clicks
 
 ## Google & Bing
-- Total Impressions Eligible For (Search): Impressions / Search Lost IS (budget)
+- Total Impressions Eligible For (Search): Impressions / Search IS
 - Daily Budget Needed to Minimize Search Lost IS (budget): (Total Impressions Eligible For * Search Lost IS (budget) * CTR * CPC) / days in period
 
 ## Universal
