@@ -1,10 +1,12 @@
 # Gravity Forms — GTM Listener
 
-Pushes Gravity Forms front-end events to `window.dataLayer` so GTM Custom Event triggers can fire downstream tags (Meta Pixel Lead, GA4 conversion, etc.).
+Pushes Gravity Forms field-completion, form-submit, success, and page-change events to `window.dataLayer` so GTM Custom Event triggers can fire downstream tags (Meta Pixel Lead, GA4 conversion, etc.).
+
+> Suggested GTM tag note: *Pushes Gravity Forms field/submit/success/page events to the dataLayer for use as Custom Event triggers.*
 
 ## What it does
 
-Subscribes to Gravity Forms' client-side hooks — both the legacy jQuery events (pre-2.9) and the native `gform/...` CustomEvents / filter API introduced in 2.9 — and pushes a normalized event to the GTM dataLayer. Duplicate pushes are suppressed when both paths fire for the same submission.
+Subscribes to Gravity Forms' client-side hooks — both the legacy jQuery events (pre-2.9) and the native `gform/...` CustomEvents / filter API introduced in 2.9 — plus the DOM `submit` event and the non-AJAX confirmation marker for forms with "Use Ajax when submitting" turned off. Pushes a normalized event to the GTM dataLayer; duplicate pushes are suppressed when multiple paths fire for the same submission.
 
 | Gravity Forms hook | dataLayer event | dataLayer variables |
 |---|---|---|
