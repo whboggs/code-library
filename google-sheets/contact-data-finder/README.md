@@ -26,10 +26,41 @@ Built for situations where contact data is scattered across many tabs — event 
 
 ## Installation
 
+There are two ways to install this. The library option is recommended — you'll get updates automatically without re-pasting code.
+
+### Option A — Install as a library (recommended)
+
+1. Open your Google Sheet
+2. Go to **Extensions → Apps Script**
+3. In the left sidebar, click the **+** next to **Libraries**
+4. Paste this Script ID and click **Look up**:
+   ```
+   1lzD8m_gmHv3TN2NutDuI8hdYBdBYy8HuFi9FYC8cEki9nWZu-gQjOd8W
+   ```
+5. Pick a version:
+   - **HEAD** — always uses the latest published code (recommended, auto-updates)
+   - A specific numbered version — frozen at that release
+6. Set **Identifier** to `ContactDataFinder` (must match exactly)
+7. Click **Add**
+8. In `Code.gs`, replace any boilerplate with this wrapper:
+   ```javascript
+   function GET_CONTACTS() {
+     return ContactDataFinder.GET_CONTACTS();
+   }
+   ```
+9. Save with `Cmd+S` (Mac) or `Ctrl+S` (Windows)
+10. Return to your Sheet and use `=GET_CONTACTS()` as described below
+
+> **Why the wrapper?** Sheets' `=GET_CONTACTS()` formulas can't call into a library directly — they need a local function that hands the call off. The wrapper is the smallest possible bridge.
+
+### Option B — Paste the code manually
+
+Use this if you want a fully self-contained copy in your Sheet (no library dependency, no automatic updates).
+
 1. Open your Google Sheet
 2. Go to **Extensions → Apps Script**
 3. Delete any boilerplate code in `Code.gs`
-4. Paste in the contents of [`get-contacts.gs`](./get-contacts.gs)
+4. Paste in the contents of [`contact-data-finder.js`](./contact-data-finder.js)
 5. Save with `Cmd+S` (Mac) or `Ctrl+S` (Windows)
 6. Close the Apps Script tab and return to your sheet
 
@@ -147,6 +178,36 @@ if (digits.length === 10) {
   return `1(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 ```
+
+## For maintainers — publishing updates
+
+The script is distributed as an Apps Script library, so consumers don't re-paste code when you ship a change. Workflow:
+
+### One-time setup
+
+1. Clone this repo locally
+2. Install clasp: `npm install -g @google/clasp`
+3. Authenticate: `clasp login`
+
+### Publishing a change
+
+1. Edit `contact-data-finder.js` locally
+2. `cd google-sheets/contact-data-finder`
+3. `clasp push` — uploads to the master Apps Script project
+4. That's it. Consumers using **HEAD** see the update on their next call.
+
+### Cutting a numbered version (optional)
+
+If you'd rather consumers pin to stable releases instead of HEAD:
+
+1. After `clasp push`, open the project: `clasp open`
+2. Click **Deploy → New deployment → Library**
+3. Add a description (e.g., "Fix phone normalization for short intl numbers")
+4. Consumers can then pick that version number when adding/updating the library
+
+### Library access settings
+
+The master script must be shared as **Anyone with the link → Viewer** for the public library install instructions above to work. Verify in the Apps Script editor: **Share** button → confirm general access.
 
 ## License
 
