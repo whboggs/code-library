@@ -42,14 +42,16 @@ There are two ways to install this. The library option is recommended — you'll
    - A specific numbered version — frozen at that release
 6. Set **Identifier** to `ContactDataFinder` (must match exactly)
 7. Click **Add**
-8. In `Code.gs`, replace any boilerplate with this wrapper:
-   ```javascript
-   function GET_CONTACTS() {
-     return ContactDataFinder.GET_CONTACTS();
-   }
-   ```
-9. Save with `Cmd+S` (Mac) or `Ctrl+S` (Windows)
-10. Return to your Sheet and use `=GET_CONTACTS()` as described below
+8. In the Apps Script editor, find the **Files** list in the left sidebar and click on **`Code.gs`** to open it
+9. You'll see some starter code (probably an empty `function myFunction() { }`). Select everything in the editor (`Cmd+A` on Mac, `Ctrl+A` on Windows) and delete it
+10. Paste in this wrapper:
+    ```javascript
+    function GET_CONTACTS() {
+      return ContactDataFinder.GET_CONTACTS();
+    }
+    ```
+11. Save with `Cmd+S` (Mac) or `Ctrl+S` (Windows)
+12. Return to your Sheet and use `=GET_CONTACTS()` as described below
 
 > **Why the wrapper?** Sheets' `=GET_CONTACTS()` formulas can't call into a library directly — they need a local function that hands the call off. The wrapper is the smallest possible bridge.
 
