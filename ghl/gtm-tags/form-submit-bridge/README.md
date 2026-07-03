@@ -23,27 +23,6 @@ DLV variables (Data Layer Variable type, name → key):
 - cJS - GHL Phone (E.164)
 
 ## GTM tag content
-### (Option 1) Auto-Update Version
-Custom HTML tag, paste this exactly:
-
-```
-<!-- 
-  GHL Form Submit Bridge
-  Loaded from https://github.com/whboggs/marketing-toolkit
-  Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
-
-  MIT License — Copyright (c) 2026 W.H. Boggs
-  https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
--->
-
-<script>
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/code-library@main/ghl/form-submit-bridge.js';
-  s.async = true;
-  document.head.appendChild(s);
-</script>
-```
-### (Option 2) Manual Update Version
 1. Create a Custom HTML Tag
 2. Copy/Paste from form-submit-bridge.js
 
