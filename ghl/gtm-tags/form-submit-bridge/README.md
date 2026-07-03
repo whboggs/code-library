@@ -24,7 +24,7 @@ DLV variables (Data Layer Variable type, name → key):
 
 ## GTM tag content
 1. Create a Custom HTML Tag
-2. Copy/Paste from form-submit-bridge.js
+2. Copy/Paste from form-submit-bridge.html
 
 ## GTM tag settings
 
