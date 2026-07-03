@@ -14,68 +14,39 @@
  * MIT License | Copyright (c) 2026 W.H. Boggs
  */
 
-(() => {
-  // Storage key uses mt_ prefix to avoid collision with other tools' sessionStorage
-  const STORAGE_KEY = 'mt_ad_placement';
-
-  // Helper: safely read from sessionStorage with fallback for private browsing
-  // Private mode and some security configurations block sessionStorage entirely
-  const getStored = () => {
-    try {
-      return sessionStorage.getItem(STORAGE_KEY);
-    } catch (e) {
-      return null;
+function() {
+  // Captures utm_placement from URL on first pageview, persists via sessionStorage.
+  // Handles both Meta placements (e.g. "Audience_Network_Native", "Facebook_Mobile_Feed")
+  // and Google Ads placements (e.g. "g_1t1" for top-of-page search, "gmb_" for Business Profile,
+  // "d_" for Display Network). The variable doesn't care which platform set the value —
+  // utm_source already tells you that. This just captures whatever placement was passed.
+  
+  var STORAGE_KEY = 'ad_placement';
+  
+  try {
+    // First, check if utm_placement is in the current URL.
+    // If yes, this is the freshest signal — overwrite anything stored.
+    var urlParams = new URLSearchParams(window.location.search);
+    var placementFromUrl = urlParams.get('utm_placement');
+    
+    if (placementFromUrl) {
+      try { sessionStorage.setItem(STORAGE_KEY, placementFromUrl); } catch(e) {}
+      return placementFromUrl;
     }
-  };
-
-  // Helper: safely write to sessionStorage, fail silently if blocked
-  const setStored = (value) => {
+    
+    // No utm_placement in current URL — fall back to whatever we stored
+    // earlier in this session (e.g. from the original landing page).
     try {
-      sessionStorage.setItem(STORAGE_KEY, value);
-    } catch (e) {
-      // Silent fail — script still works for single-pageview attribution
-    }
-  };
-
-  // Resolve the placement value using URL first, sessionStorage fallback
-  // Returns null if neither source has a value (caller decides what to do)
-  const resolvePlacement = () => {
-    try {
-      // Check current URL for utm_placement (freshest signal)
-      const urlParams = new URLSearchParams(window.location.search);
-      const placementFromUrl = urlParams.get('utm_placement');
-
-      if (placementFromUrl) {
-        // Fresh value — store it and return
-        setStored(placementFromUrl);
-        return placementFromUrl;
-      }
-
-      // No URL value — fall back to sessionStorage from earlier in this session
-      const stored = getStored();
+      var stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) return stored;
-
-      // No value available from either source
-      return null;
-    } catch (e) {
-      // URLSearchParams unavailable (very old browsers) or other failure
-      return null;
-    }
-  };
-
-  // Get the placement value
-  const placement = resolvePlacement();
-
-  // Only push when a placement value exists — keeps dataLayer clean
-  // Missing keys in dataLayer are handled gracefully by DLV default values
-  if (placement) {
-    // Ensure dataLayer exists before pushing (GTM creates it but be safe)
-    window.dataLayer = window.dataLayer || [];
-
-    // Silent push — no event key, so this doesn't trigger anything
-    // The value becomes available to any DLV reading "ad_placement"
-    window.dataLayer.push({
-      ad_placement: placement
-    });
+    } catch(e) {}
+    
+    // No URL value, no stored value — return undefined.
+    // GA4 will simply omit the parameter rather than send an empty string.
+    return undefined;
+    
+  } catch (e) {
+    // URLSearchParams unavailable (very old browsers) or other failure
+    return undefined;
   }
-})();
+}
