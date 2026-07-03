@@ -47,7 +47,7 @@
                     {
                         "type": "TEMPLATE",
                         "key": "html",
-                        "value": "<script>\n  var s = document.createElement('script');\n  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@main/ghl/scripts/form-submit-bridge/form-submit-bridge.js';\n  s.async = true;\n  document.head.appendChild(s);\n</script>\n"
+                        "value": "<script>\n  var s = document.createElement('script');\n  s.src = 'https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit@main/go-high-level/scripts/form-submit-bridge/form-submit-bridge.js';\n  s.async = true;\n  document.head.appendChild(s);\n</script>\n"
                     },
                     {
                         "type": "BOOLEAN",
