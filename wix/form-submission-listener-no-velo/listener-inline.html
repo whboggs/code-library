@@ -1,6 +1,6 @@
 <script>
 /*!
- * Wix Form Submission Listener — No-Velo / Harmony-compatible (v2.0)
+ * Wix Form Submission Listener — No-Velo / Harmony-compatible (v2.1)
  * Loaded from https://github.com/whboggs/marketing-toolkit
  *
  * Detects Wix Forms submissions and pushes a normalized wix_form_submit
@@ -184,10 +184,24 @@
     return { fields: fields, tracked: tracked };
   }
 
+  // The form container is the nearest ancestor that contains at least one
+  // field element — no Wix-specific selectors, so it works whether or not
+  // Wix renders a real <form> (form-app widgets often don't).
   function findContainer(fromEl) {
     if (!fromEl || !fromEl.closest) return null;
-    return fromEl.closest('form') ||
-      fromEl.closest('[role="form"], [data-form-id], [data-testid*="form" i]');
+    var form = fromEl.closest('form');
+    if (form) return form;
+    var node = fromEl.parentElement;
+    var depth = 0;
+    while (node && node !== document.body && depth < 15) {
+      if (node.querySelector &&
+          node.querySelector('input:not([type="hidden"]), textarea, select')) {
+        return node;
+      }
+      node = node.parentElement;
+      depth++;
+    }
+    return null;
   }
 
   function armDomDetection(container, trigger) {
@@ -247,19 +261,42 @@
     } catch (err) {}
   }, true);
 
-  // Clicks on submit-like buttons (covers JS-only forms with no <form>
-  // submit dispatch). A <button> inside a form defaults to type "submit";
-  // explicit type="button" is skipped.
+  // Clicks on any button-like element (covers JS-only forms with no <form>
+  // submit dispatch). No type="submit" filter — Wix renders JS-handled
+  // buttons as type="button" — and no harm arming on non-submit buttons:
+  // nothing pushes unless the form then shows success behavior.
+  // composedPath()[0] sees through open shadow roots, where e.target is
+  // retargeted to the shadow host.
   document.addEventListener('click', function (e) {
     try {
-      var el = e.target;
+      var el = (e.composedPath && e.composedPath()[0]) || e.target;
       if (!el || !el.closest) return;
-      var btn = el.closest('button, input[type="submit"]');
-      if (!btn) return;
-      var type = (btn.type || 'submit').toLowerCase();
-      if (type !== 'submit') return;
+      var btn = el.closest('button, input[type="submit"], [role="button"]');
+      if (!btn) {
+        return;
+      }
       var container = findContainer(btn);
-      if (container) armDomDetection(container, 'submit click');
+      if (!container) {
+        debug('dom: click on button-like element but no field container found',
+          btn.tagName, btn.getAttribute && btn.getAttribute('type'),
+          (btn.textContent || '').trim().slice(0, 40));
+        return;
+      }
+      armDomDetection(container, 'button click');
+    } catch (err) {}
+  }, true);
+
+  // Enter key in a field — JS-managed forms may submit without a click or
+  // a native submit event.
+  document.addEventListener('keydown', function (e) {
+    try {
+      if (e.key !== 'Enter') return;
+      var el = (e.composedPath && e.composedPath()[0]) || e.target;
+      if (!el || !el.tagName) return;
+      var tag = el.tagName.toLowerCase();
+      if (tag !== 'input' && tag !== 'select') return;
+      var container = findContainer(el);
+      if (container) armDomDetection(container, 'enter key');
     } catch (err) {}
   }, true);
 
@@ -427,6 +464,6 @@
     };
   }
 
-  debug('listener v2.0 installed — DOM layer + network layer, endpoint pattern:', String(ENDPOINT_RE));
+  debug('listener v2.1 installed — DOM layer + network layer, endpoint pattern:', String(ENDPOINT_RE));
 })();
 </script>
