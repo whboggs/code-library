@@ -16,8 +16,11 @@
  * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
  *
  * WHERE TO PASTE
- *   - One page only:  that page's code panel (Velo "Page Code").
- *   - Every page:     masterPage.js (Velo "Site Code / Public & Backend > masterPage.js").
+ *   - Recommended:  masterPage.js (Velo "Site Code / Public & Backend >
+ *                   masterPage.js"). Runs on every page, so one paste covers
+ *                   every form on the site — no per-page code.
+ *   - Single page:  that page's code panel (Velo "Page Code"), only if you
+ *                   want to track a form on one page and nowhere else.
  */
 
 // ---------------------------------------------------------------------------

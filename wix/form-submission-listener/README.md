@@ -41,7 +41,12 @@ split:
 
 ## Installation
 
-### Step 1: Add the Custom Element (the bridge)
+This is a **one-time, site-wide** setup. You do **not** add anything to each
+page or each form: the Custom Element is shown on all pages once (Step 1), and
+the listener lives in `masterPage.js` so it runs on every page automatically
+(Step 2). To add a new form later, you only append its ID to `FORM_SELECTORS`.
+
+### Step 1: Add the Custom Element (the bridge) — once
 
 1. In the Wix Editor, **Add → Embed Code → Custom Element**.
 2. Under the element's settings, **Upload files** and upload
@@ -49,14 +54,18 @@ split:
 3. Set **Tag Name** to `wix-datalayer-bridge`.
 4. Give the element the **ID** `dataLayerBridge` (matches `BRIDGE_SELECTOR` in
    `listener.js`) and set it to show on **all pages**. It renders nothing, so
-   its size and position don't matter.
+   its size and position don't matter. You add this element only once, not per
+   page.
 
-### Step 2: Add the listener (Velo)
+### Step 2: Add the listener (Velo) — once, site-wide
 
 1. Turn on **Dev Mode / Velo**.
-2. Paste `listener.js` into:
-   - the **page's code panel** if you only track a form on one page, or
-   - **`masterPage.js`** (Site Code) to track forms site-wide.
+2. Paste `listener.js` into **`masterPage.js`** (Velo's Site Code, under
+   *Public & Backend*). This runs on every page, so one paste covers every form
+   on the site — no per-page code.
+   *(If you truly only ever want a single page tracked, you can paste it into
+   that page's code panel instead, but `masterPage.js` is the recommended
+   default.)*
 3. Edit the CONFIG block at the top:
    - `FORM_SELECTORS` — the ID of each Wix Form to listen to (e.g.
      `['#wixForms1']`). Click a form in the Editor to read its ID.
