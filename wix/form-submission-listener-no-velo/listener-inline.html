@@ -1,24 +1,32 @@
 <script>
 /*!
- * Wix Form Submission Listener — No-Velo / Harmony-compatible (v1.1)
+ * Wix Form Submission Listener — No-Velo / Harmony-compatible (v2.0)
  * Loaded from https://github.com/whboggs/marketing-toolkit
  *
- * Detects Wix Forms submissions by intercepting the page's form-submit
- * network request (fetch/XHR/sendBeacon) and pushes a normalized
- * wix_form_submit event to the GTM dataLayer. Runs entirely in the page
- * window — no Velo, no Custom Element — so it works in editors without
- * Dev Mode (Wix Harmony).
+ * Detects Wix Forms submissions and pushes a normalized wix_form_submit
+ * event to the GTM dataLayer. Runs entirely in the page window — no Velo,
+ * no Custom Element — so it works in editors without Dev Mode (Wix Harmony).
  *
- * WARNING: this reads Wix's private, undocumented submission endpoints and
- * payload shapes, which Wix can change without notice. Prefer the Velo
- * listener (../form-submission-listener/) on editors that support it, and
- * re-verify this one in GTM Preview after Wix platform updates.
+ * TWO DETECTION LAYERS (both run; first one to fire wins):
+ *   1. DOM layer — snapshots field values when a submit button is clicked,
+ *      then pushes when the form shows success behavior (Wix clears the
+ *      fields or removes the form). This is the layer that works on Wix
+ *      Harmony, where the submission HTTP request happens inside Wix's
+ *      platform Web Worker and page-level network interception can't see it.
+ *   2. Network layer — wraps fetch/XHR/sendBeacon and parses the form-submit
+ *      request (/_api/...submit...) on a 2xx response. Richer payload when
+ *      it works; silent on worker-based stacks like Harmony.
  *
- * DEBUG MODE: add ?wix_listener_debug=1 to the page URL (or set
- * window.wixFormListenerDebug = true in the console) and every request the
- * listener sees is logged to the console with a [wix-form-listener] prefix,
- * including why it was or wasn't treated as a form submit. Use this to find
- * your site's real endpoint, then tighten ENDPOINT_RE below.
+ * WARNING: this reads Wix's private, undocumented behaviors, which Wix can
+ * change without notice. Prefer the Velo listener
+ * (../form-submission-listener/) on editors that support it, and re-verify
+ * this one in GTM Preview after Wix platform updates.
+ *
+ * DEBUG MODE: add ?wix_listener_debug=1 to the page URL (works alongside
+ * gtm_debug: ...?gtm_debug=123&wix_listener_debug=1) or set
+ * window.wixFormListenerDebug = true in the console. Everything the listener
+ * sees is logged with a [wix-form-listener] prefix, including why each
+ * request/click was or wasn't treated as a form submit.
  *
  * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
  *
@@ -33,19 +41,25 @@
 (function () {
   'use strict';
 
-  // Wix form submits POST to /_api/ services whose paths have changed across
-  // Forms versions — match broadly on submit/submission and let the payload
-  // guard below reject non-form requests. To pin this to your site's exact
-  // endpoint, run debug mode (see header) or watch DevTools > Network while
-  // submitting a form, then tighten this regex to that request's path.
+  // Network layer: Wix form submits POST to /_api/ services whose paths have
+  // changed across Forms versions — match broadly on submit/submission and
+  // let the payload guard reject non-form requests.
   var ENDPOINT_RE = /\/_api\/[^?#]*(submit|submission)/i;
 
   var DATALAYER_EVENT = 'wix_form_submit';
 
-  // De-dupe: some flows send the same submission through more than one
-  // request (or retry). Suppress identical field sets for a short window.
+  // DOM layer: how long after a submit click we watch for success behavior,
+  // and how often we check.
+  var PENDING_TTL_MS = 12000;
+  var POLL_MS = 400;
+
+  // De-dupe within and across layers.
   var recent = {};
   var DEDUPE_MS = 3000;
+
+  // ---------------------------------------------------------------------
+  // Shared helpers
+  // ---------------------------------------------------------------------
 
   function debugOn() {
     try {
@@ -61,6 +75,197 @@
       console.log.apply(console, args);
     } catch (err) {}
   }
+
+  function looksLikeEmail(v) {
+    return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  }
+
+  function looksLikePhone(v) {
+    if (typeof v !== 'string') return false;
+    if (!/^[\d\s()+\-.]+$/.test(v.trim())) return false;
+    var digits = v.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15;
+  }
+
+  function generateEventId() {
+    return String(Date.now()) + '_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  // Build the dataLayer event from a flat {key: value} field map.
+  // Returns null when there's nothing user-entered (payload guard).
+  function buildEvent(flat, formId, detection, source) {
+    var email, phone, firstName, lastName;
+    var stringValues = [];
+    for (var key in flat) {
+      var v = flat[key];
+      if (typeof v !== 'string' || !v) continue;
+      stringValues.push(v);
+      var lk = key.toLowerCase();
+      if (!email && looksLikeEmail(v)) email = v.trim().toLowerCase();
+      if (!phone && looksLikePhone(v)) phone = v.replace(/\D/g, '');
+      if (!firstName && /first[_.\-\s]?name/.test(lk)) firstName = v;
+      if (!lastName && /last[_.\-\s]?name/.test(lk)) lastName = v;
+    }
+    if (!stringValues.length) return null;
+
+    return {
+      _dedupeKey: stringValues.sort().join('|'),
+      event: DATALAYER_EVENT,
+      wix_event_id: generateEventId(), // Meta Pixel + CAPI dedup key
+      wix_email: email || undefined,
+      wix_phone: phone || undefined,
+      wix_first_name: firstName || undefined,
+      wix_last_name: lastName || undefined,
+      wix_form_id: formId || undefined,
+      wix_detection: detection, // 'dom' | 'network' — which layer caught it
+      wix_endpoint: source || undefined,
+      wix_form_data: flat
+    };
+  }
+
+  function pushEvent(evt) {
+    if (!evt) return false;
+    var key = evt._dedupeKey;
+    delete evt._dedupeKey;
+    var now = Date.now();
+    if (recent[key] && now - recent[key] < DEDUPE_MS) {
+      debug('duplicate submission suppressed', evt.wix_detection);
+      return false;
+    }
+    recent[key] = now;
+    debug('PUSHING', evt);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(evt);
+    return true;
+  }
+
+  // ---------------------------------------------------------------------
+  // Layer 1: DOM detection (works on Wix Harmony / worker-based stacks)
+  //
+  // On a submit-button click (or native submit event), snapshot the
+  // container's field values. Then poll briefly: Wix signals success by
+  // clearing the fields or removing/replacing the form. Validation failures
+  // leave values in place, so they never push.
+  // ---------------------------------------------------------------------
+
+  var pendings = [];
+  var pollTimer = null;
+
+  function fieldLabel(el, idx) {
+    return el.name || el.getAttribute('aria-label') || el.placeholder ||
+      el.id || ('field_' + idx);
+  }
+
+  function snapshotContainer(container) {
+    var els = container.querySelectorAll('input, select, textarea');
+    var fields = {};
+    var tracked = []; // visible text-entry fields we watch for "cleared"
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var type = (el.type || '').toLowerCase();
+      if (type === 'password' || type === 'submit' || type === 'button' ||
+          type === 'reset' || type === 'file' || type === 'image') continue;
+      var value;
+      if (type === 'checkbox' || type === 'radio') {
+        if (!el.checked) continue;
+        value = el.value || 'checked';
+      } else {
+        value = el.value;
+      }
+      if (typeof value !== 'string') continue;
+      value = value.replace(/^\s+|\s+$/g, '');
+      if (!value) continue;
+      fields[fieldLabel(el, i)] = value;
+      if (type !== 'hidden' && type !== 'checkbox' && type !== 'radio' &&
+          el.tagName.toLowerCase() !== 'select') {
+        tracked.push({ el: el, value: value });
+      }
+    }
+    return { fields: fields, tracked: tracked };
+  }
+
+  function findContainer(fromEl) {
+    if (!fromEl || !fromEl.closest) return null;
+    return fromEl.closest('form') ||
+      fromEl.closest('[role="form"], [data-form-id], [data-testid*="form" i]');
+  }
+
+  function armDomDetection(container, trigger) {
+    var snap = snapshotContainer(container);
+    if (!snap.tracked.length) {
+      debug('dom: ' + trigger + ' seen but no user-entered field values — not armed');
+      return;
+    }
+    // Re-arm replaces any pending for the same container (fresh values).
+    for (var i = pendings.length - 1; i >= 0; i--) {
+      if (pendings[i].container === container) pendings.splice(i, 1);
+    }
+    pendings.push({
+      container: container,
+      snap: snap,
+      formId: container.id || container.getAttribute('data-form-id') || undefined,
+      expires: Date.now() + PENDING_TTL_MS
+    });
+    debug('dom: ' + trigger + ' — snapshot armed, watching for success', snap.fields);
+    if (!pollTimer) pollTimer = setInterval(pollPendings, POLL_MS);
+  }
+
+  function pollPendings() {
+    var now = Date.now();
+    for (var i = pendings.length - 1; i >= 0; i--) {
+      var p = pendings[i];
+      if (now > p.expires) {
+        debug('dom: watch window expired without success behavior');
+        pendings.splice(i, 1);
+        continue;
+      }
+      var removed = !document.documentElement.contains(p.container);
+      var cleared = false;
+      if (!removed) {
+        cleared = true;
+        for (var j = 0; j < p.snap.tracked.length; j++) {
+          var t = p.snap.tracked[j];
+          if ((t.el.value || '').replace(/^\s+|\s+$/g, '') !== '') { cleared = false; break; }
+        }
+      }
+      if (removed || cleared) {
+        debug('dom: success behavior detected (' + (removed ? 'form removed' : 'fields cleared') + ')');
+        pushEvent(buildEvent(p.snap.fields, p.formId, 'dom', undefined));
+        pendings.splice(i, 1);
+      }
+    }
+    if (!pendings.length && pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  // Native submit events (dispatched even when React preventDefaults).
+  document.addEventListener('submit', function (e) {
+    try {
+      if (e.target && e.target.tagName === 'FORM') armDomDetection(e.target, 'submit event');
+    } catch (err) {}
+  }, true);
+
+  // Clicks on submit-like buttons (covers JS-only forms with no <form>
+  // submit dispatch). A <button> inside a form defaults to type "submit";
+  // explicit type="button" is skipped.
+  document.addEventListener('click', function (e) {
+    try {
+      var el = e.target;
+      if (!el || !el.closest) return;
+      var btn = el.closest('button, input[type="submit"]');
+      if (!btn) return;
+      var type = (btn.type || 'submit').toLowerCase();
+      if (type !== 'submit') return;
+      var container = findContainer(btn);
+      if (container) armDomDetection(container, 'submit click');
+    } catch (err) {}
+  }, true);
+
+  // ---------------------------------------------------------------------
+  // Layer 2: network interception (fetch / XHR / sendBeacon)
+  // ---------------------------------------------------------------------
 
   // Normalize any request body shape to a plain object (or null).
   // Returns a Promise — Blob bodies (common with sendBeacon) read async.
@@ -119,74 +324,27 @@
     return out;
   }
 
-  function looksLikeEmail(v) {
-    return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-  }
-
-  function looksLikePhone(v) {
-    if (typeof v !== 'string') return false;
-    if (!/^[\d\s()+\-.]+$/.test(v.trim())) return false;
-    var digits = v.replace(/\D/g, '');
-    return digits.length >= 7 && digits.length <= 15;
-  }
-
-  function generateEventId() {
-    return String(Date.now()) + '_' + Math.random().toString(36).substring(2, 15);
-  }
-
-  function handleSubmit(url, payload, status) {
+  function handleNetworkSubmit(url, payload, status) {
     if (status < 200 || status >= 300) {
-      debug('matched endpoint but non-2xx status', status, url);
+      debug('network: matched endpoint but non-2xx status', status, url);
       return;
     }
     if (!payload || typeof payload !== 'object') {
-      debug('matched endpoint but request body was empty/unparseable', url);
+      debug('network: matched endpoint but request body was empty/unparseable', url);
       return;
     }
-
     var flat = flatten(payload, '', {}, 0);
-
-    var email, phone, firstName, lastName;
-    var stringValues = [];
-    for (var key in flat) {
-      var v = flat[key];
-      if (typeof v !== 'string' || !v) continue;
-      stringValues.push(v);
-      var lk = key.toLowerCase();
-      if (!email && looksLikeEmail(v)) email = v.trim().toLowerCase();
-      if (!phone && looksLikePhone(v)) phone = v.replace(/\D/g, '');
-      if (!firstName && /first[_.\-]?name/.test(lk)) firstName = v;
-      if (!lastName && /last[_.\-]?name/.test(lk)) lastName = v;
-    }
-    // Payload guard: a real form submit carries user-entered values. This
-    // keeps unrelated requests that slip past ENDPOINT_RE out of dataLayer.
-    if (!stringValues.length) {
-      debug('matched endpoint but payload had no string values — skipped', url, payload);
+    var formId = (typeof payload.formId === 'string' && payload.formId) || undefined;
+    var evt = buildEvent(flat, formId, 'network', url.split('?')[0]);
+    if (!evt) {
+      debug('network: matched endpoint but payload had no string values — skipped', url, payload);
       return;
     }
-
-    var dedupeKey = stringValues.join('|');
-    var now = Date.now();
-    if (recent[dedupeKey] && now - recent[dedupeKey] < DEDUPE_MS) {
-      debug('duplicate submission suppressed', url);
-      return;
+    if (pushEvent(evt)) {
+      // The network layer saw the real submission — the DOM layer would be
+      // a duplicate for the same submit, so disarm it.
+      pendings.length = 0;
     }
-    recent[dedupeKey] = now;
-
-    var event = {
-      event: DATALAYER_EVENT,
-      wix_event_id: generateEventId(), // Meta Pixel + CAPI dedup key
-      wix_email: email || undefined,
-      wix_phone: phone || undefined,
-      wix_first_name: firstName || undefined,
-      wix_last_name: lastName || undefined,
-      wix_form_id: (typeof payload.formId === 'string' && payload.formId) || undefined,
-      wix_endpoint: url.split('?')[0], // which request matched — for debugging
-      wix_form_data: flat
-    };
-    debug('PUSHING', event);
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push(event);
   }
 
   function inspect(kind, url, body, status) {
@@ -194,11 +352,11 @@
     debug(kind, status !== undefined ? status : '(no status)', url);
     if (!ENDPOINT_RE.test(url)) return;
     bodyToObject(body).then(function (payload) {
-      try { handleSubmit(url, payload, status); } catch (err) {}
+      try { handleNetworkSubmit(url, payload, status); } catch (err) {}
     });
   }
 
-  // --- fetch interception -------------------------------------------------
+  // --- fetch ---
   if (typeof window.fetch === 'function') {
     var origFetch = window.fetch;
     window.fetch = function (input, init) {
@@ -232,7 +390,7 @@
     };
   }
 
-  // --- XHR interception ---------------------------------------------------
+  // --- XHR ---
   if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
     var proto = window.XMLHttpRequest.prototype;
     var origOpen = proto.open;
@@ -254,7 +412,7 @@
     };
   }
 
-  // --- sendBeacon interception ---------------------------------------------
+  // --- sendBeacon ---
   // Beacons return only "queued" (true/false), never a response status —
   // treat a queued beacon to a matching endpoint as accepted.
   if (window.navigator && typeof window.navigator.sendBeacon === 'function') {
@@ -269,6 +427,6 @@
     };
   }
 
-  debug('listener installed', 'endpoint pattern:', String(ENDPOINT_RE));
+  debug('listener v2.0 installed — DOM layer + network layer, endpoint pattern:', String(ENDPOINT_RE));
 })();
 </script>
