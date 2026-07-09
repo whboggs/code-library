@@ -36,9 +36,10 @@ split:
 
 - **Classic Wix Editor or Wix Studio — NOT Wix Harmony.** The Wix Harmony
   editor (launched Jan 2026) has no Velo, no Dev Mode, and no Custom Elements,
-  so this listener cannot run there. On a Harmony site, check whether Wix's
-  built-in GTM integration already pushes its automatic `lead` event on form
-  submit (no field values), or track forms from the GTM side instead.
+  so this listener cannot run there. On a Harmony site, use the
+  [no-Velo listener](../form-submission-listener-no-velo/) instead, or check
+  whether Wix's built-in GTM integration already pushes its automatic `lead`
+  event on form submit (no field values).
 - **GTM installed on the Wix site.** Add it via **Settings → Custom Code** (or
   Wix's Marketing Integrations), firing on all pages in the `<head>`. The
   bridge pushes to whatever `dataLayer` GTM created.
@@ -185,8 +186,9 @@ Universal-Analytics-style events — not something to build new tracking on.)
 
 You *can* avoid Velo and the Custom Element entirely by doing everything in a
 single GTM Custom HTML tag (fire on **All Pages**) that detects the submission
-by intercepting Wix's form-submit network request. The trade-off is
-reliability: that approach reads Wix's private, undocumented submission
+by intercepting Wix's form-submit network request — that exists as the
+[no-Velo listener](../form-submission-listener-no-velo/) in this toolkit. The
+trade-off is reliability: it reads Wix's private, undocumented submission
 endpoint and payload shape, which Wix changes without notice — so it can go
 blind after a Wix update. This listener uses the documented
 `onWixFormSubmitted` API instead — which gives clean, structured field data —
