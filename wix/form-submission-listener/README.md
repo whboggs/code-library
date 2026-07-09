@@ -127,6 +127,33 @@ To fire only for a specific form, add a trigger condition on `wix_form_id`.
   names/values only — not the Wix contact ID or server submission timestamp.
   Use a Velo backend `onFormSubmit` handler if you need those.
 
+## FAQ
+
+### Does this have to be a Custom Element? Can't I just do it all in one GTM tag?
+
+The Custom Element isn't about convenience — it's the only reliable way to get
+data from Velo into `dataLayer`. Velo frontend code can't push to
+`window.dataLayer` (it's sandboxed and usually `undefined` there) and it can't
+call into a GTM Custom HTML tag either. So whenever you use Wix's official
+`onWixFormSubmitted` event — which is what gives you clean, structured field
+data — you need one small component running in the real page window to receive
+the payload and push it. That's the Custom Element.
+
+You *can* avoid Velo and the Custom Element entirely by doing everything in a
+single GTM Custom HTML tag (fire on **All Pages**) that detects the submission
+by intercepting Wix's form-submit network request. The trade-off is
+reliability: that approach reads Wix's private, undocumented submission
+endpoint and payload shape, which Wix changes without notice — so it can go
+blind after a Wix update. This listener uses the documented API instead, which
+is why it needs the two-piece (Velo + Custom Element) setup.
+
+### Do I have to add this to every page that has a form?
+
+No. It's a one-time, site-wide install. The Custom Element is shown on all
+pages once, and the listener lives in `masterPage.js`, which runs on every
+page automatically. Adding a new form later is just one more ID in
+`FORM_SELECTORS` — no new code or elements. See **Installation** above.
+
 ## Disclaimer
 
 Provided as-is under the MIT License. Test thoroughly before relying on it for
