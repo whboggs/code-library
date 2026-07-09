@@ -34,6 +34,11 @@ split:
 
 ## Prerequisites
 
+- **Classic Wix Editor or Wix Studio — NOT Wix Harmony.** The Wix Harmony
+  editor (launched Jan 2026) has no Velo, no Dev Mode, and no Custom Elements,
+  so this listener cannot run there. On a Harmony site, check whether Wix's
+  built-in GTM integration already pushes its automatic `lead` event on form
+  submit (no field values), or track forms from the GTM side instead.
 - **GTM installed on the Wix site.** Add it via **Settings → Custom Code** (or
   Wix's Marketing Integrations), firing on all pages in the `<head>`. The
   bridge pushes to whatever `dataLayer` GTM created.
