@@ -14,12 +14,15 @@
  * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
  *
  * SETUP (Wix Editor):
- *   1. Add > Embed Code > Custom Element.
- *   2. Choose "Upload files" and upload this file (or point to its jsDelivr URL).
+ *   1. Add Elements (+) > Embed & Social > Custom Element.
+ *   2. Choose Source > "Velo file": put this file in public/custom-elements/
+ *      and select it. (Or "Server URL": paste this file's jsDelivr URL.)
  *   3. Set the Tag Name to:  wix-datalayer-bridge
- *   4. Give the element the ID used in listener.js (default: dataLayerBridge)
- *      and set it to show on all pages. It renders nothing, so position/size
- *      don't matter.
+ *   4. Give the element the ID used in listener.js (default: dataLayerBridge).
+ *      It renders nothing, so position/size don't matter.
+ *   5. The element must exist on each page with a tracked form. Site-wide:
+ *      classic Editor = right-click > Show on All Pages (or the footer);
+ *      Wix Studio = place it in a Global Section. See README for details.
  */
 
 class WixDataLayerBridge extends HTMLElement {
