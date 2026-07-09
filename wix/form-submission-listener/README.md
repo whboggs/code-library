@@ -41,7 +41,12 @@ split:
 
 ## Installation
 
-### Step 1: Add the Custom Element (the bridge)
+This is a **one-time, site-wide** setup. You do **not** add anything to each
+page or each form: the Custom Element is shown on all pages once (Step 1), and
+the listener lives in `masterPage.js` so it runs on every page automatically
+(Step 2). To add a new form later, you only append its ID to `FORM_SELECTORS`.
+
+### Step 1: Add the Custom Element (the bridge) — once
 
 1. In the Wix Editor, **Add → Embed Code → Custom Element**.
 2. Under the element's settings, **Upload files** and upload
@@ -49,14 +54,18 @@ split:
 3. Set **Tag Name** to `wix-datalayer-bridge`.
 4. Give the element the **ID** `dataLayerBridge` (matches `BRIDGE_SELECTOR` in
    `listener.js`) and set it to show on **all pages**. It renders nothing, so
-   its size and position don't matter.
+   its size and position don't matter. You add this element only once, not per
+   page.
 
-### Step 2: Add the listener (Velo)
+### Step 2: Add the listener (Velo) — once, site-wide
 
 1. Turn on **Dev Mode / Velo**.
-2. Paste `listener.js` into:
-   - the **page's code panel** if you only track a form on one page, or
-   - **`masterPage.js`** (Site Code) to track forms site-wide.
+2. Paste `listener.js` into **`masterPage.js`** (Velo's Site Code, under
+   *Public & Backend*). This runs on every page, so one paste covers every form
+   on the site — no per-page code.
+   *(If you truly only ever want a single page tracked, you can paste it into
+   that page's code panel instead, but `masterPage.js` is the recommended
+   default.)*
 3. Edit the CONFIG block at the top:
    - `FORM_SELECTORS` — the ID of each Wix Form to listen to (e.g.
      `['#wixForms1']`). Click a form in the Editor to read its ID.
@@ -117,6 +126,33 @@ To fire only for a specific form, add a trigger condition on `wix_form_id`.
 - **No server-side submission details.** The frontend event has field
   names/values only — not the Wix contact ID or server submission timestamp.
   Use a Velo backend `onFormSubmit` handler if you need those.
+
+## FAQ
+
+### Does this have to be a Custom Element? Can't I just do it all in one GTM tag?
+
+The Custom Element isn't about convenience — it's the only reliable way to get
+data from Velo into `dataLayer`. Velo frontend code can't push to
+`window.dataLayer` (it's sandboxed and usually `undefined` there) and it can't
+call into a GTM Custom HTML tag either. So whenever you use Wix's official
+`onWixFormSubmitted` event — which is what gives you clean, structured field
+data — you need one small component running in the real page window to receive
+the payload and push it. That's the Custom Element.
+
+You *can* avoid Velo and the Custom Element entirely by doing everything in a
+single GTM Custom HTML tag (fire on **All Pages**) that detects the submission
+by intercepting Wix's form-submit network request. The trade-off is
+reliability: that approach reads Wix's private, undocumented submission
+endpoint and payload shape, which Wix changes without notice — so it can go
+blind after a Wix update. This listener uses the documented API instead, which
+is why it needs the two-piece (Velo + Custom Element) setup.
+
+### Do I have to add this to every page that has a form?
+
+No. It's a one-time, site-wide install. The Custom Element is shown on all
+pages once, and the listener lives in `masterPage.js`, which runs on every
+page automatically. Adding a new form later is just one more ID in
+`FORM_SELECTORS` — no new code or elements. See **Installation** above.
 
 ## Disclaimer
 
