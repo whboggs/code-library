@@ -78,18 +78,38 @@ Identical to the Velo listener — follow
 1. GTM **Preview** → submit a real form on the live/preview site.
 2. Confirm `wix_form_submit` appears with your field values in
    `wix_form_data`.
-3. **If nothing fires:** open DevTools → **Network**, submit the form, and find
-   the POST request Wix sends. If its URL doesn't contain `submit`/`submission`
-   under `/_api/`, edit `ENDPOINT_RE` at the top of the script to match that
-   request's path.
+
+### If nothing fires: debug mode
+
+1. In GTM Preview's **Tags Fired**, first confirm the Custom HTML tag itself
+   fired on the page.
+2. Load the page with **`?wix_listener_debug=1`** appended to the URL (or run
+   `window.wixFormListenerDebug = true` in the DevTools console), open the
+   console, and submit the form. Every request the listener sees is logged
+   with a `[wix-form-listener]` prefix, including *why* a request was or
+   wasn't treated as a form submit:
+   - **You see the submit request logged but skipped** → the log line says
+     why (endpoint didn't match, body unparseable, non-2xx). If the endpoint
+     didn't match, edit `ENDPOINT_RE` at the top of the script to match that
+     request's path.
+   - **No requests logged at all around the submit** → the submission isn't
+     going through the page's `fetch`/`XHR`/`sendBeacon` (e.g. the form lives
+     in an iframe, or Wix captured a reference to `fetch` before GTM loaded).
+     Open DevTools → **Network**, submit again, find the POST request, and
+     note its URL and its **initiator** — that determines the fix.
 
 ## Known limitations
 
 - **Fragile by nature.** Undocumented endpoints and payload shapes; a Wix
   update can silently stop events. The Velo listener doesn't have this
   problem — use it where Velo exists.
-- **JSON request bodies only.** Submissions sent as non-JSON (multipart file
-  uploads, `sendBeacon`) aren't parsed.
+- **Parsed body shapes: JSON, form-encoded, `FormData`, `URLSearchParams`,
+  and JSON `Blob`s** (including via `sendBeacon`). Multipart file-upload
+  bodies aren't parsed.
+- **Requests must pass through the page's `fetch`/`XHR`/`sendBeacon`.** If
+  Wix's runtime captured a private reference to `fetch` before this script
+  ran, or the form renders in an iframe, the wrapper never sees the request —
+  use debug mode (above) to spot this.
 - **Field paths are site-specific.** `wix_form_data` mirrors whatever Wix's
   request looks like on your site — always confirm paths in GTM Preview before
   wiring DLVs.
