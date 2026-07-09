@@ -1,0 +1,178 @@
+<script>
+/*!
+ * Wix Form Submission Listener — No-Velo / Harmony-compatible
+ * Loaded from https://github.com/whboggs/marketing-toolkit
+ *
+ * Detects Wix Forms submissions by intercepting the page's form-submit
+ * network request (fetch/XHR) and pushes a normalized wix_form_submit event
+ * to the GTM dataLayer. Runs entirely in the page window — no Velo, no
+ * Custom Element — so it works in editors without Dev Mode (Wix Harmony).
+ *
+ * WARNING: this reads Wix's private, undocumented submission endpoints and
+ * payload shapes, which Wix can change without notice. Prefer the Velo
+ * listener (../form-submission-listener/) on editors that support it, and
+ * re-verify this one in GTM Preview after Wix platform updates.
+ *
+ * Created by whboggs — https://whboggs.com — Get in touch for a free tracking audit.
+ *
+ * MIT License — Copyright (c) 2026 W.H. Boggs
+ * https://github.com/whboggs/marketing-toolkit/blob/main/LICENSE
+ *
+ * WHERE TO PASTE (either one, not both):
+ *   - GTM Custom HTML tag, All Pages — Page View (recommended: pausable,
+ *     versioned with your container), or
+ *   - Wix dashboard > Settings > Custom Code > Body End, all pages.
+ */
+(function () {
+  'use strict';
+
+  // Wix form submits POST to /_api/ services whose paths have changed across
+  // Forms versions — match broadly on submit/submission and let the payload
+  // guard below reject non-form requests. To pin this to your site's exact
+  // endpoint, watch DevTools > Network while submitting a form and tighten
+  // this regex to that request's path.
+  var ENDPOINT_RE = /\/_api\/[^?#]*(submit|submission)/i;
+
+  var DATALAYER_EVENT = 'wix_form_submit';
+
+  // De-dupe: some flows send the same submission through more than one
+  // request (or retry). Suppress identical field sets for a short window.
+  var recent = {};
+  var DEDUPE_MS = 3000;
+
+  function tryParseJSON(text) {
+    if (typeof text !== 'string' || !text) return null;
+    try { return JSON.parse(text); } catch (err) { return null; }
+  }
+
+  // Flatten the request JSON to dot-path keys ("submission.email"), keeping
+  // primitive leaves only. Downstream GTM DLVs read wix_form_data.{path}.
+  function flatten(obj, prefix, out, depth) {
+    if (!obj || depth > 6) return out;
+    for (var k in obj) {
+      if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+      var v = obj[k];
+      if (v === null || v === undefined) continue;
+      var path = prefix ? prefix + '.' + k : k;
+      var t = typeof v;
+      if (t === 'string' || t === 'number' || t === 'boolean') {
+        out[path] = v;
+      } else if (t === 'object') {
+        flatten(v, path, out, depth + 1);
+      }
+    }
+    return out;
+  }
+
+  function looksLikeEmail(v) {
+    return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  }
+
+  function looksLikePhone(v) {
+    if (typeof v !== 'string') return false;
+    if (!/^[\d\s()+\-.]+$/.test(v.trim())) return false;
+    var digits = v.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15;
+  }
+
+  function generateEventId() {
+    return String(Date.now()) + '_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  function handleSubmit(url, bodyText, status) {
+    if (status < 200 || status >= 300) return; // only server-accepted submits
+    var payload = tryParseJSON(bodyText);
+    if (!payload || typeof payload !== 'object') return;
+
+    var flat = flatten(payload, '', {}, 0);
+
+    var email, phone, firstName, lastName;
+    var stringValues = [];
+    for (var key in flat) {
+      var v = flat[key];
+      if (typeof v !== 'string' || !v) continue;
+      stringValues.push(v);
+      var lk = key.toLowerCase();
+      if (!email && looksLikeEmail(v)) email = v.trim().toLowerCase();
+      if (!phone && looksLikePhone(v)) phone = v.replace(/\D/g, '');
+      if (!firstName && /first[_.\-]?name/.test(lk)) firstName = v;
+      if (!lastName && /last[_.\-]?name/.test(lk)) lastName = v;
+    }
+    // Payload guard: a real form submit carries user-entered values. This
+    // keeps unrelated requests that slip past ENDPOINT_RE out of dataLayer.
+    if (!stringValues.length) return;
+
+    var dedupeKey = stringValues.join('|');
+    var now = Date.now();
+    if (recent[dedupeKey] && now - recent[dedupeKey] < DEDUPE_MS) return;
+    recent[dedupeKey] = now;
+
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: DATALAYER_EVENT,
+      wix_event_id: generateEventId(), // Meta Pixel + CAPI dedup key
+      wix_email: email || undefined,
+      wix_phone: phone || undefined,
+      wix_first_name: firstName || undefined,
+      wix_last_name: lastName || undefined,
+      wix_form_id: (typeof payload.formId === 'string' && payload.formId) || undefined,
+      wix_endpoint: url.split('?')[0], // which request matched — for debugging
+      wix_form_data: flat
+    });
+  }
+
+  // --- fetch interception -------------------------------------------------
+  if (typeof window.fetch === 'function') {
+    var origFetch = window.fetch;
+    window.fetch = function (input, init) {
+      var url = '';
+      var bodyPromise = null;
+      try {
+        if (typeof input === 'string') url = input;
+        else if (input && typeof input.url === 'string') url = input.url;
+        if (url && ENDPOINT_RE.test(url)) {
+          if (init && typeof init.body === 'string') {
+            bodyPromise = Promise.resolve(init.body);
+          } else if (input && typeof input.clone === 'function') {
+            // Request object with a body stream — read a clone, never the
+            // original, so the real request is untouched.
+            bodyPromise = input.clone().text().catch(function () { return null; });
+          }
+        }
+      } catch (err) { /* never break the site's fetch */ }
+
+      var result = origFetch.apply(this, arguments);
+      if (bodyPromise) {
+        result.then(function (res) {
+          bodyPromise.then(function (bodyText) {
+            try { handleSubmit(url, bodyText, res.status); } catch (err) {}
+          });
+        }).catch(function () { /* request failure — nothing to track */ });
+      }
+      return result;
+    };
+  }
+
+  // --- XHR interception ---------------------------------------------------
+  if (window.XMLHttpRequest && window.XMLHttpRequest.prototype) {
+    var proto = window.XMLHttpRequest.prototype;
+    var origOpen = proto.open;
+    var origSend = proto.send;
+    proto.open = function (method, url) {
+      try { this.__wixFormUrl = typeof url === 'string' ? url : String(url || ''); } catch (err) {}
+      return origOpen.apply(this, arguments);
+    };
+    proto.send = function (body) {
+      var xhr = this;
+      try {
+        if (xhr.__wixFormUrl && ENDPOINT_RE.test(xhr.__wixFormUrl) && typeof body === 'string') {
+          xhr.addEventListener('load', function () {
+            try { handleSubmit(xhr.__wixFormUrl, body, xhr.status); } catch (err) {}
+          });
+        }
+      } catch (err) { /* never break the site's XHR */ }
+      return origSend.apply(this, arguments);
+    };
+  }
+})();
+</script>

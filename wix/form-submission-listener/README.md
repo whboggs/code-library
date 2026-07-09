@@ -34,6 +34,12 @@ split:
 
 ## Prerequisites
 
+- **Classic Wix Editor or Wix Studio — NOT Wix Harmony.** The Wix Harmony
+  editor (launched Jan 2026) has no Velo, no Dev Mode, and no Custom Elements,
+  so this listener cannot run there. On a Harmony site, use the
+  [no-Velo listener](../form-submission-listener-no-velo/) instead, or check
+  whether Wix's built-in GTM integration already pushes its automatic `lead`
+  event on form submit (no field values).
 - **GTM installed on the Wix site.** Add it via **Settings → Custom Code** (or
   Wix's Marketing Integrations), firing on all pages in the `<head>`. The
   bridge pushes to whatever `dataLayer` GTM created.
@@ -41,21 +47,39 @@ split:
 
 ## Installation
 
-This is a **one-time, site-wide** setup. You do **not** add anything to each
-page or each form: the Custom Element is shown on all pages once (Step 1), and
-the listener lives in `masterPage.js` so it runs on every page automatically
-(Step 2). To add a new form later, you only append its ID to `FORM_SELECTORS`.
+This is a **one-time** setup. The listener lives in `masterPage.js`, so it
+runs on every page automatically (Step 2); the Custom Element only needs to
+exist on **pages that have forms** — the listener no-ops on pages where it
+isn't found (Step 1 covers site-wide placement options). To add a new form
+later, you only append its ID to `FORM_SELECTORS`.
 
-### Step 1: Add the Custom Element (the bridge) — once
+### Step 1: Add the Custom Element (the bridge)
 
-1. In the Wix Editor, **Add → Embed Code → Custom Element**.
-2. Under the element's settings, **Upload files** and upload
-   `datalayer-bridge.js` (or point it at the file's jsDelivr URL).
-3. Set **Tag Name** to `wix-datalayer-bridge`.
-4. Give the element the **ID** `dataLayerBridge` (matches `BRIDGE_SELECTOR` in
-   `listener.js`) and set it to show on **all pages**. It renders nothing, so
-   its size and position don't matter. You add this element only once, not per
-   page.
+1. In the Wix Editor, **Add Elements (+) → Embed & Social → Custom Element**.
+2. Select the element and click **Choose Source**. Two options:
+   - **Velo file** — with Dev Mode on, copy `datalayer-bridge.js` into your
+     site's **`public/custom-elements/`** folder (it must be in that exact
+     directory to appear in the picker), then select it. Recommended — the
+     code is pinned and can't change under you.
+   - **Server URL** — paste this file's jsDelivr URL:
+     `https://cdn.jsdelivr.net/gh/whboggs/marketing-toolkit/wix/form-submission-listener/datalayer-bridge.js`
+     (updates automatically as the toolkit improves, with the usual
+     third-party-hosting caveat).
+3. Set **Tag Name** to `wix-datalayer-bridge` — it must exactly match the name
+   in the file's `customElements.define()`.
+4. In the Properties & Events panel, give the element the **ID**
+   `dataLayerBridge` (matches `BRIDGE_SELECTOR` in `listener.js`). It renders
+   nothing, so its size and position don't matter.
+5. Decide where it lives:
+   - **Only some pages have forms?** Just place the element on those pages
+     (or only the one page). Nothing else needed.
+   - **Site-wide, classic Wix Editor:** right-click the element → **Show on
+     All Pages**. The toggle is missing/disabled while the element sits inside
+     a container, section, or the footer — drag it to page level first.
+     Alternatively, place it in the **footer**, which appears on every page by
+     construction.
+   - **Site-wide, Wix Studio:** there is no per-element "show on all pages" —
+     place the element inside a **Global Section** (e.g. your global footer).
 
 ### Step 2: Add the listener (Velo) — once, site-wide
 
@@ -129,30 +153,54 @@ To fire only for a specific form, add a trigger condition on `wix_form_id`.
 
 ## FAQ
 
-### Does this have to be a Custom Element? Can't I just do it all in one GTM tag?
+### Why can't the bridge just be a GTM Custom HTML tag? It's only an HTML element.
 
-The Custom Element isn't about convenience — it's the only reliable way to get
-data from Velo into `dataLayer`. Velo frontend code can't push to
-`window.dataLayer` (it's sandboxed and usually `undefined` there) and it can't
-call into a GTM Custom HTML tag either. So whenever you use Wix's official
-`onWixFormSubmitted` event — which is what gives you clean, structured field
-data — you need one small component running in the real page window to receive
-the payload and push it. That's the Custom Element.
+Because the element's real job isn't hosting HTML — it's being **addressable
+from Velo**. Velo code runs in a sandboxed worker with no DOM access; the only
+things in the page window it can talk to are elements registered in Wix's own
+element tree, via `$w()`. That is exactly the channel the listener uses:
+`$w('#dataLayerBridge').setAttribute('data-payload', …)`.
+
+A GTM Custom HTML tag injects a script into the page, but that script is not
+in Wix's element tree — `$w()` can't see it, so Velo has no way to hand it the
+form data. The Custom Element is less "the thing that pushes to dataLayer" and
+more "the only door between Velo's sandbox and the page window"; the push is
+just what it does when data comes through the door.
+
+### Could the bridge go somewhere else in Wix — like Settings → Custom Code?
+
+No. Scripts added via **Settings → Custom Code** run in the page window, but
+they aren't in `$w()` scope either, so Velo can't reach them — same problem as
+a GTM tag. Velo's only other page-window channel is the HTML iframe embed
+(`postMessage`), but Wix hosts those iframes on a different origin, so the
+iframe can't touch the parent page's `dataLayer` — and it would still be an
+on-page element anyway. If Velo is doing the listening, a Custom Element is
+the mechanism.
+
+(Wix's `wixWindowFrontend.trackEvent("CustomEvent", …)` used to be a
+no-element path to the dataLayer when GTM was installed through Wix's
+marketing integrations, but Wix has deprecated it and it only emits legacy
+Universal-Analytics-style events — not something to build new tracking on.)
+
+### Does this have to use Velo at all? Can't I do it all in one GTM tag?
 
 You *can* avoid Velo and the Custom Element entirely by doing everything in a
 single GTM Custom HTML tag (fire on **All Pages**) that detects the submission
-by intercepting Wix's form-submit network request. The trade-off is
-reliability: that approach reads Wix's private, undocumented submission
+by intercepting Wix's form-submit network request — that exists as the
+[no-Velo listener](../form-submission-listener-no-velo/) in this toolkit. The
+trade-off is reliability: it reads Wix's private, undocumented submission
 endpoint and payload shape, which Wix changes without notice — so it can go
-blind after a Wix update. This listener uses the documented API instead, which
-is why it needs the two-piece (Velo + Custom Element) setup.
+blind after a Wix update. This listener uses the documented
+`onWixFormSubmitted` API instead — which gives clean, structured field data —
+and that is why it needs the two-piece (Velo + Custom Element) setup.
 
 ### Do I have to add this to every page that has a form?
 
-No. It's a one-time, site-wide install. The Custom Element is shown on all
-pages once, and the listener lives in `masterPage.js`, which runs on every
-page automatically. Adding a new form later is just one more ID in
-`FORM_SELECTORS` — no new code or elements. See **Installation** above.
+The code, no — the listener lives in `masterPage.js` and runs everywhere
+automatically. The Custom Element must exist on each page where a tracked form
+lives: either place it there directly, or make it site-wide once (classic
+Editor: **Show on All Pages** or the footer; Wix Studio: a Global Section —
+see Step 1). Adding a new form later is just one more ID in `FORM_SELECTORS`.
 
 ## Disclaimer
 
