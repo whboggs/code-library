@@ -1,4 +1,4 @@
-#README
+# README
 
 ## All Variables Used
 | Custom Variable Name | Meta Parameter | Value Type | Description | GA4 Parameter |

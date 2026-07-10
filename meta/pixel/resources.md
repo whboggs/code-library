@@ -1,1 +1,1 @@
-- Standard Event Parameters: https://developers.facebook.com/documentation/meta-pixel/implementation/conversion-tracking#object-properites
+- Standard Event Parameters: https://developers.facebook.com/docs/meta-pixel/implementation/conversion-tracking#object-properties
