@@ -18,7 +18,7 @@ DLV variables (Data Layer Variable type, name → key):
 - DLV - GHL Form Data → ghl_form_data
 
 ## Custom JS variables
-*Find these in gtm-core*
+*Find these in gtm/variables*
 - cJS - GHL Email (Normalized)
 - cJS - GHL Phone (E.164)
 
