@@ -7,7 +7,7 @@
 | `cJS - Traffic Source` | `traffic_source` | — | String | Custom JavaScript variable that returns the traffic source for the session. |
 | `DLV - currency` | `currency` | `currency` | String | The currency for the `value` specified. |
 | `DLV - item_category` | `content_category` | `items[].item_category` | String | Category of the page/product. Optional. |
-| `DLV - item_ids` | `content_ids` | `items[].item_id` | Array of integers or strings | Product IDs associated with the event, such as SKUs. |
+| `DLV - item_id` | `content_ids` | `items[].item_id` | Array of integers or strings | Product IDs associated with the event, such as SKUs. |
 | `DLV - item_name` | `content_name` | `items[].item_name` | String | Name of the page/product. Optional. |
 | `DLV - item_type` | `content_type` | — (no GA4 equivalent) | String | Either `product` or `product_group` based on the IDs passed in `content_ids` or `contents`. |
 | `DLV - items` | `contents` | `items[]` array | Array of objects | Array of JSON objects with product IDs and quantities. `id` and `quantity` required. |
