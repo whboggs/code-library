@@ -12,6 +12,7 @@ Fires a Meta Pixel `Lead` event with custom parameters sourced from GTM variable
 
 - The **base Meta Pixel** tag (`meta/pixel/base/`) must be installed and firing on All Pages — Page View. Without it, `fbq` is undefined and this tag warns and exits.
 - A GTM variable named `cJS - Traffic Source` returning last-touch traffic source (Custom JavaScript variable).
+- A GTM variable named `cJS - Ad Placement` returning the ad placement (Custom JavaScript variable).
 - Built-in GTM variable `Page Path` enabled.
 - *(Optional)* A Lookup Table variable named `LUT - Convert Form ID to Text` mapping form IDs to human-readable form names — uncomment the line in `lead-config.html` to send it.
 
@@ -45,6 +46,7 @@ The event is sent with the following parameters:
 | `lead_type` | Hardcoded `Form Submit` | Custom param — change in `lead-config.html` if this tag fires for a different lead type (e.g., `Phone Call`) |
 | `traffic_source` | `{{cJS - Traffic Source}}` | Custom param — last-touch traffic source |
 | `content_name` | `{{Page Path}}` | Meta standard param — page where the lead occurred |
+| `ad_placement` | `{{cJS - Ad Placement}}` | Custom param — ad placement |
 | `form_name` | `{{LUT - Convert Form ID to Text}}` | *(Optional)* Custom param — human-readable form name |
 
 Empty values are stripped before sending.
