@@ -16,3 +16,5 @@
 | `DLV - search_string` | `search_string` | String | Used with the `Search` event. The string entered by the user. | `search_term` |
 | `DLV - status` | `status` | Boolean | Used with `CompleteRegistration` to show registration status. Optional. | — |
 | `DLV - value` | `value` | Integer or float | The value of a user performing this event to the business. | `value` |
+| — | `delivery_category` | String | Type of delivery for a purchased product: `in_store`, `curbside`, or `home_delivery`. | `shipping_tier` |
+| — | — (no Meta equivalent) | String | Unique ID for the transaction. Required for GA4 `purchase` and `refund` events. | `transaction_id` |
