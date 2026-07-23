@@ -1,11 +1,11 @@
 /**
- * Top ROAS Keyword Labeler — SINGLE ACCOUNT VERSION
- * -------------------------------------------------
- * Runs inside ONE Google Ads account. For the MCC version that processes
- * all child accounts in parallel, use top-roas-keyword-labeler-mcc.js.
- * Don't run both against the same account (harmless but redundant).
+ * Top ROAS Keyword Labeler — MCC VERSION
+ * --------------------------------------
+ * Runs from a MANAGER (MCC) account and processes ALL child accounts in
+ * parallel. Each account gets its own "Top ROAS" label (entity labels are
+ * account-owned; same name/color everywhere, but separate label objects).
  *
- * Applies the label "Top ROAS" to keywords whose ROAS (Conv. Value / Cost)
+ * Applies the label to keywords whose ROAS (Conv. Value / Cost)
  * MEANINGFULLY beats the rest of their ad group over the lookback window.
  *
  * Qualification test (all must pass):
@@ -19,18 +19,16 @@
  *      Low-volume keywords need a bigger observed edge to qualify.
  *   5. adjustedROAS > benchmark * BENCHMARK_MULTIPLIER
  *
- * The label is kept current: keywords that no longer qualify have the
- * label removed on each run.
+ * The label is kept current per account: keywords that no longer qualify
+ * have the label removed on each run.
  *
- * Note on Preview mode: createLabel isn't persisted in Preview, so if the
- * label doesn't exist yet, apply/remove steps are safely skipped. Preview
- * still shows qualifying counts and debug math. The first LIVE run creates
- * the label and applies it.
- *
- * Schedule daily or weekly.
+ * Notes:
+ *   - executeInParallel supports up to 50 accounts per run; each account
+ *     gets its own 30-minute execution limit.
+ *   - Schedule daily or weekly at the MCC level.
  */
 
-// ---- Configuration ---------------------------------------------------------
+// ---- Configuration (applies to every child account) ------------------------
 const CONFIG = {
   LABEL_NAME: 'Top ROAS',        // Label to apply/remove
   LABEL_COLOR: '#22C55E',        // Tailwind green-500 — used if the label needs to be created
@@ -44,8 +42,25 @@ const CONFIG = {
                                  // whose raw ROAS is above their peer average
 };
 
+// ---- MCC entry point -------------------------------------------------------
+
 function main() {
-  // Make sure the label exists in the account before we try to use it
+  // Select ALL child accounts under this manager (cap: 50 per execution)
+  const accountSelector = AdsManagerApp.accounts().withLimit(50);
+
+  // Fan out: processAccount() runs once per account, each in its own thread
+  // with its own 30-min limit. reportResults() aggregates when all finish.
+  accountSelector.executeInParallel('processAccount', 'reportResults');
+}
+
+/**
+ * Runs inside each child account's context — every AdsApp call below is
+ * automatically scoped to the account being processed.
+ * Returns a JSON summary string for the aggregator.
+ */
+function processAccount() {
+  const account = AdsApp.currentAccount();
+
   ensureLabelExists();
 
   // Build the rolling date window (ends yesterday to avoid partial-day data)
@@ -53,27 +68,77 @@ function main() {
 
   // Step 1: Ad group totals used to build per-keyword "rest of ad group" benchmarks
   const adGroupTotals = buildAdGroupTotalsMap(startDate, endDate);
-  Logger.log(`Collected totals for ${Object.keys(adGroupTotals).length} ad groups.`);
 
   // Step 2: Find qualifying keywords (see header for the full test)
   const qualifying = findQualifyingKeywords(startDate, endDate, adGroupTotals);
-  Logger.log(`${qualifying.size} keywords currently qualify for "${CONFIG.LABEL_NAME}".`);
 
   // Step 3: Sweep currently-labeled keywords; remove label from any that
   // no longer qualify, and record which qualifiers are already labeled
   const sweep = removeStaleLabels(qualifying);
-  Logger.log(`Removed label from ${sweep.removed} keywords that no longer qualify.`);
 
   // Step 4: Apply the label to qualifiers that don't have it yet
   const toAdd = [...qualifying].filter((key) => !sweep.alreadyLabeled.has(key));
   applyLabel(toAdd);
 
-  Logger.log(`Done. Added: ${toAdd.length}, unchanged: ${sweep.alreadyLabeled.size}.`);
+  // Return a per-account summary for reportResults()
+  return JSON.stringify({
+    accountName: account.getName(),
+    customerId: account.getCustomerId(),
+    adGroups: Object.keys(adGroupTotals).length,
+    qualifying: qualifying.size,
+    added: toAdd.length,
+    removed: sweep.removed,
+    unchanged: sweep.alreadyLabeled.size,
+  });
+}
+
+/**
+ * Aggregator — runs once at the MCC level after all accounts finish.
+ * Logs a per-account summary plus any per-account errors.
+ */
+function reportResults(results) {
+  let totalAdded = 0;
+  let totalRemoved = 0;
+  let failures = 0;
+
+  for (const result of results) {
+    // Surface per-account failures without killing the whole run
+    if (result.getStatus() !== 'OK') {
+      failures++;
+      Logger.log(`FAILED ${result.getCustomerId()}: ${result.getError()}`);
+      continue;
+    }
+
+    // Guard: a crashed/odd thread can report OK but return nothing parseable
+    const raw = result.getReturnValue();
+    let s;
+    try {
+      s = JSON.parse(raw);
+    } catch (e) {
+      failures++;
+      Logger.log(`FAILED ${result.getCustomerId()}: empty/invalid summary returned.`);
+      continue;
+    }
+
+    totalAdded += s.added;
+    totalRemoved += s.removed;
+    Logger.log(
+      `${s.accountName} (${s.customerId}) — ad groups: ${s.adGroups}, ` +
+      `qualifying: ${s.qualifying}, added: ${s.added}, removed: ${s.removed}, ` +
+      `unchanged: ${s.unchanged}`
+    );
+  }
+
+  Logger.log('----------------------------------------');
+  Logger.log(
+    `Done. Accounts processed: ${results.length - failures}, ` +
+    `failed: ${failures}, labels added: ${totalAdded}, removed: ${totalRemoved}.`
+  );
 }
 
 // ---- Label management ------------------------------------------------------
 
-/** Creates the label if it doesn't already exist in the account. */
+/** Creates the label in the CURRENT child account if it doesn't exist. */
 function ensureLabelExists() {
   const existing = AdsApp.labels()
     .withCondition(`label.name = '${CONFIG.LABEL_NAME}'`)
@@ -81,10 +146,9 @@ function ensureLabelExists() {
   if (!existing.hasNext()) {
     AdsApp.createLabel(
       CONFIG.LABEL_NAME,
-      'Keyword ROAS meaningfully beats rest of ad group (auto-managed by script)',
+      'Keyword ROAS meaningfully beats rest of ad group (auto-managed by MCC script)',
       CONFIG.LABEL_COLOR
     );
-    Logger.log(`Created label "${CONFIG.LABEL_NAME}".`);
   }
 }
 
@@ -209,11 +273,18 @@ function findQualifyingKeywords(startDate, endDate, adGroupTotals) {
   return qualifying;
 }
 
+/** Logs only when CONFIG.DEBUG is on. */
+function debugLog(message) {
+  if (CONFIG.DEBUG) {
+    Logger.log(`[${AdsApp.currentAccount().getName()}] ${message}`);
+  }
+}
+
 // ---- Label application / removal -------------------------------------------
 
 /**
- * Iterates keywords that currently carry the label. Removes the label from
- * any keyword not in the qualifying set. Returns:
+ * Iterates keywords that currently carry the label in this account. Removes
+ * the label from any keyword not in the qualifying set. Returns:
  *   { alreadyLabeled: Set of qualified+labeled keys, removed: count }
  */
 function removeStaleLabels(qualifying) {
@@ -272,12 +343,5 @@ function applyLabel(keys) {
     while (keywords.hasNext()) {
       keywords.next().applyLabel(CONFIG.LABEL_NAME);
     }
-  }
-}
-
-/** Logs only when CONFIG.DEBUG is on. */
-function debugLog(message) {
-  if (CONFIG.DEBUG) {
-    Logger.log(message);
   }
 }
