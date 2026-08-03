@@ -1,4 +1,4 @@
-# Elementor Listerner Form Submit
+# Elementor Listener Form Submit
 Pushes a `form_submit` event to the dataLayer
 
 ## Installation
