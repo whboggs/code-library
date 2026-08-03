@@ -1,0 +1,13 @@
+<!-- This script listened for the submit_success event in Elementor and triggers a form_submit event-->
+
+<script>
+jQuery(document).ready(function($) {
+  jQuery(document).on('submit_success', function(event) {
+    dataLayer.push({
+      event: 'form_submit',
+      form_name: 'elementor_generic',
+      form_target: event.target.action || 'unknown'
+    });
+  });
+});
+</script>
