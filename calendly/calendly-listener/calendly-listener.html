@@ -1,0 +1,31 @@
+<script>
+(function () {
+  // Calendly posts messages to the parent window whenever something happens in the embed
+  window.addEventListener('message', function (e) {
+    // Only handle messages that actually came from Calendly
+    if (!isCalendlyEvent(e)) {
+      return;
+    }
+
+    // Only act on the "booking confirmed" event
+    if (e.data.event === 'calendly.event_scheduled') {
+      // Push a custom event + the booking payload into the dataLayer
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'calendly_booking_confirmed',
+        calendlyPayload: e.data.payload
+      });
+    }
+  });
+
+  // Helper: confirms the postMessage actually came from Calendly
+  function isCalendlyEvent(e) {
+    return (
+      e.origin === 'https://calendly.com' &&
+      e.data &&
+      e.data.event &&
+      e.data.event.indexOf('calendly.') === 0
+    );
+  }
+})();
+</script>
