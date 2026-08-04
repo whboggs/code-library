@@ -4,6 +4,11 @@ Core Google Tag Manager variables we set up on most accounts — first-party
 cookie readers, "does it exist" booleans, traffic source / ad placement, and a
 few page/post/form context values.
 
+> **Keep the Starter Kit in sync.** [`gtm-starter-kit/`](gtm-starter-kit/)
+> bundles copies of every variable below so it imports self-contained. If you
+> add, rename, or change anything here, update the Starter Kit export too — or
+> the bundled copy will drift.
+
 ## Quick import
 
 `gtm-essentials.json` is a GTM container export. Import it to create all of the

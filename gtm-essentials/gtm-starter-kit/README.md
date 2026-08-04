@@ -80,6 +80,11 @@ entry and are bundled here (folder *GTM Essentials*) so the kit is self-containe
 Full details and source files are in
 [`gtm-essentials/README.md`](../README.md).
 
+> **Maintenance — keep this in sync with GTM Essentials.** The variables below
+> are **copies** baked into `gtm-starter-kit.json`. Whenever GTM Essentials gains
+> or changes a variable, refresh this export too so the copies don't drift. (A
+> `.json` file can't carry an inline comment, so this reminder lives here.)
+
 - **First-party cookie variables** (`1PC - …`): `_fbc`, `_fbp`, `fbclid`,
   `_gcl_aw`, `_uetmsclkid`, `_ttp`, `_twclid`, `li_fat_id`.
 - **Existence booleans** (`cJS - Boolean - <cookie> Exists`) — one per cookie
