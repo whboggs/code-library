@@ -57,8 +57,13 @@ sure something pushes `form_submit` to the dataLayer.
 
 - **GA4 - Measurement ID** — Constant, `G-0000000000`. **Replace with your real
   Measurement ID** — every GA4 tag reads from this one place.
-- **User Provided Data** — User-Provided Data variable set to **Automatic**
-  collection (for GA4 / Google Ads enhanced conversions).
+
+> **User-Provided Data variable — add this one by hand.** GTM's User-Provided
+> Data variable has no stable container-export type, so it isn't in the JSON.
+> Add it after import: **Variables → New → Variable Configuration →
+> User-Provided Data**, set it to **Automatic**, and name it `User Provided
+> Data`. It's a two-click add and pairs with GA4 / Google Ads enhanced
+> conversions.
 
 ### Built-in variables enabled
 
@@ -103,8 +108,7 @@ Full details and source files are in
 
 - **GA4 event Measurement ID** — confirm the tag's Measurement ID field resolves
   to `{{GA4 - Measurement ID}}` (or point it at the *Config - GA4* Google tag).
-- **User Provided Data** — confirm it's set to **Automatic**; it's a
-  template-based variable, so double-check it imported cleanly.
+- **User-Provided Data** — not in the JSON (see above); add it via the UI.
 - **Trigger mapping** — *Config - GA4* should fire on **Initialization - All
   Pages** and *Conversion Linker* on **All Pages**; re-select if either didn't
   map.
