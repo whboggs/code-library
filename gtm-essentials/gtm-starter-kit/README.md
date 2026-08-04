@@ -2,7 +2,7 @@
 
 A ready-to-import Google Tag Manager container that stands up a baseline of
 form-submit conversion tracking for **GA4** and **Meta**, built on top of the
-[GTM Essentials](../gtm-essentials/) variables. Import it into a fresh (or
+[GTM Essentials](../) variables. Import it into a fresh (or
 existing) web container to get the tags, trigger, and variables below.
 
 ## Quick import
@@ -70,22 +70,22 @@ Referrer.
 
 ## Included from GTM Essentials
 
-These variables come from the [**GTM Essentials**](../gtm-essentials/) toolkit
+These variables come from the [**GTM Essentials**](../) toolkit
 entry and are bundled here (folder *GTM Essentials*) so the kit is self-contained.
 Full details and source files are in
-[`gtm-essentials/README.md`](../gtm-essentials/README.md).
+[`gtm-essentials/README.md`](../README.md).
 
 - **First-party cookie variables** (`1PC - …`): `_fbc`, `_fbp`, `fbclid`,
   `_gcl_aw`, `_uetmsclkid`, `_ttp`, `_twclid`, `li_fat_id`.
 - **Existence booleans** (`cJS - Boolean - <cookie> Exists`) — one per cookie
   above; each returns `!!{{1PC - <cookie>}}`.
 - **`cJS - Traffic Source`** — last-touch traffic source
-  ([source](../gtm-essentials/variables/cjs-traffic-source/cjs-traffic-source.js)).
+  ([source](../variables/cjs-traffic-source/cjs-traffic-source.js)).
 - **`cJS - Ad Placement`** — `utm_placement`, persisted per session
-  ([source](../gtm-essentials/variables/cjs-ad-placement/ad-placement.js)).
+  ([source](../variables/cjs-ad-placement/ad-placement.js)).
 - **`cJS - Page Title`**, **`cJS - Post Title`**, **`cJS - Post ID`**,
   **`cJS - Form ID`** — page/post/form context
-  ([sources](../gtm-essentials/variables/)).
+  ([sources](../variables/)).
 
 ---
 
@@ -96,7 +96,7 @@ Full details and source files are in
    (the tag calls `fbq(...)`, so `fbq` has to exist). Add your Pixel base tag,
    ideally gated on consent.
 3. **`form_submit` event** must be pushed to the dataLayer. The toolkit's
-   [Elementor Listener](../wordpress/elementor/elementor-listener-form-submit/)
+   [Elementor Listener](../../wordpress/elementor/elementor-listener-form-submit/)
    pushes exactly this event; use it (or your platform's equivalent listener).
 
 ## Things to verify on import
