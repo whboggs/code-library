@@ -62,6 +62,15 @@ above, built from
   *submitted* form's id, use an Auto-Event Variable (Element ID) on a Form
   Submission trigger instead.
 
+**Built-in variables enabled** — the import also switches on GTM's standard
+built-ins: Click Classes / Element / ID / Target / Text / URL, Event, Form
+Classes / Element / ID / Target / Text / URL, HTML ID, Page Hostname / Path /
+URL, and Referrer.
+
+> *Analytics Client ID* is intentionally left out — it has no stable
+> container-export type, so enable it by hand in **Configure** if you need it
+> (one checkbox).
+
 ## All Variables Used
 | Custom Variable Name | Meta Parameter | GA4 Parameter | Value Type | Description |
 |---|---|---|---|---|
