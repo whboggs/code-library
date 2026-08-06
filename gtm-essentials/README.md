@@ -11,8 +11,10 @@ few page/post/form context values.
 
 ## Quick import
 
-`gtm-essentials-variables.json` is a GTM container export. Import it to create all of the
-variables below at once, filed under a **GTM Essentials** folder.
+[`gtm-essentials-variables.json`](variables/gtm-essentials-variables/gtm-essentials-variables.json)
+is a GTM container export ([documented here](variables/gtm-essentials-variables/)).
+Import it to create all of the variables below at once, filed under a
+**GTM Essentials** folder.
 
 1. GTM → **Admin → Import Container**.
 2. Choose `gtm-essentials-variables.json`, select your workspace.
