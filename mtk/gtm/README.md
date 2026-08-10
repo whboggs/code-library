@@ -8,18 +8,23 @@ plus the Custom Event trigger that fires them.
 
 `mtk-attribution.json` contains:
 
-- **32 Data Layer Variables** — one per MTK source: first- and last-touch
-  dimensions (channel, source, medium, campaign, term, content, placement,
-  landing page, landing query), click IDs (gclid, gbraid, wbraid, msclkid,
-  fbclid), Meta cookies (`_fbc`, `_fbp`), the journey (touch path, session
-  count, pageview count), and conversion timing.
+- **41 Data Layer Variables** — one per MTK source: first- and last-touch
+  dimensions (channel, source, medium, campaign, term, content, ad placement,
+  landing page, landing page group, query, referrer), click IDs (gclid,
+  gbraid, wbraid, msclkid, fbclid), Meta cookies (`_fbc`, `_fbp`), the
+  journey (journey string, journey JSON, session count, pageview count),
+  paid-touch insights (paid touch count, last paid touch, time since last
+  paid touch), conversion timing (time to conversion, Unix, datetime, custom
+  time), and the all-fields Attribution Summary.
 - **1 Custom Event trigger** — `mtk_attribution`, the tag's page-load event.
 - A GTM **folder** named `MTK - Attribution`; every variable and the trigger
   are filed under it.
 
 Variables follow the naming convention `MTK - <Dimension> - <Qualifier>`, e.g.
 `MTK - Channel - First Touch`, `MTK - Source - Last Touch`, `MTK - gclid -
-Google`.
+Google`. Each variable reads the canonical dataLayer key of the same name in
+the default field map — `mtk_first_channel`, `mtk_last_source`, `mtk_gclid`,
+and so on.
 
 ## Installation
 
@@ -27,7 +32,7 @@ Google`.
 2. Choose `mtk-attribution.json` and select your workspace.
 3. Set **Merge** and **Rename conflicting** so nothing existing is overwritten.
 4. Preview the changes, then Confirm. You'll get an **MTK - Attribution**
-   folder with all 32 variables and the trigger.
+   folder with all 41 variables and the trigger.
 
 ## Using them
 
@@ -41,6 +46,13 @@ Google`.
 The MTK Attribution tag must be loaded on the page — it pushes the
 `mtk_attribution` dataLayer event, and these variables read that event. They
 work whether or not the tag is also filling hidden form fields.
+
+The dataLayer keys these variables read are the **canonical field names**
+(`mtk_first_*` / `mtk_last_*`, `mtk_journey_*`, `mtk_conversion_unix`, …). If
+a license's field map was saved before the canonical-naming rename (old
+`mtk_ft_*` / `mtk_lt_*` spellings), re-save the tag config in the dashboard —
+it normalizes every legacy name to its canonical spelling — so the pushed keys
+match these variables.
 
 ## Notes
 
