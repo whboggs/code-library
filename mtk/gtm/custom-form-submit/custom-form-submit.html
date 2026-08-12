@@ -48,5 +48,20 @@
     }, 250);
   }, true);   // capture, so stopPropagation in page code can't hide the event
 
+  // Framer: forms are React components - they preventDefault and submit via
+  // fetch, and the success state has no stable class, so neither path above
+  // ever sees them. Framer instead dispatches `framer:formsubmit` on window,
+  // but ONLY for forms with a Tracking ID set in the form's properties panel.
+  window.addEventListener('framer:formsubmit', function (e) {
+    var d = (e && e.detail) || {};
+    window.dataLayer.push({
+      event: 'mtk_form_submit',
+      form_id: d.trackingId || d.id || '',
+      form_name: d.name || d.trackingId || '',
+      detection_method: 'framer_event',
+      event_id: 'mtk-' + new Date().getTime()   // pass to Meta CAPI as eventID
+    });
+  });
+
 })();
 </script>
