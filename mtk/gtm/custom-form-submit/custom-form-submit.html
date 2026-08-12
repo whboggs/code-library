@@ -1,0 +1,52 @@
+<script>
+(function () {
+  'use strict';
+
+  if (window.__mtkForms) { return; }   // don't double-bind
+  window.__mtkForms = true;
+  window.dataLayer = window.dataLayer || [];
+
+  // Success blocks: Webflow, CF7, Gravity, WPForms, Elementor, Formidable
+  var SUCCESS = '.w-form-done, .wpcf7-mail-sent-ok, .gform_confirmation_message, ' +
+                '.wpforms-confirmation-container, .elementor-message-success, .frm_message';
+
+  // Forms that navigate but aren't conversions - these would otherwise false-positive
+  var IGNORE = 'form[role="search"], form[action*="search"], form[data-mtk-ignore]';
+
+  // True once any success block is actually rendered on screen
+  function shown() {
+    return [].some.call(document.querySelectorAll(SUCCESS), function (n) { return n.offsetHeight; });
+  }
+
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (form.tagName !== 'FORM' || form.matches(IGNORE)) { return; }
+
+    var timer, fired = false;
+
+    function push(method) {
+      if (fired) { return; }
+      fired = true;
+      window.clearInterval(timer);
+      window.dataLayer.push({
+        event: 'mtk_form_submit',
+        form_id: form.id || '',
+        form_name: form.getAttribute('data-name') || form.name || '',
+        detection_method: method,
+        event_id: 'mtk-' + new Date().getTime()   // pass to Meta CAPI as eventID
+      });
+    }
+
+    // Nothing called preventDefault, so the browser is navigating - that IS the success
+    window.setTimeout(function () { if (!e.defaultPrevented) { push('navigation'); } }, 0);
+
+    // AJAX form: poll for a success block for 15s (60 x 250ms), then give up
+    var tries = 0;
+    timer = window.setInterval(function () {
+      if (fired || ++tries > 60) { window.clearInterval(timer); return; }
+      if (shown()) { push('success_block'); }
+    }, 250);
+  }, true);   // capture, so stopPropagation in page code can't hide the event
+
+})();
+</script>
