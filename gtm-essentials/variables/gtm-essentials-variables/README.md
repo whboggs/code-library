@@ -8,7 +8,7 @@ Last updated: August 2026
 ## Overview
 
 `gtm-essentials-variables.json` is a Google Tag Manager **container export**
-that creates every GTM Essentials variable in one import — 22 variables, filed
+that creates every GTM Essentials variable in one import — 24 variables, filed
 under a **GTM Essentials** folder, plus GTM's standard built-in variables
 switched on. Use it instead of building the variables one by one from the
 sibling folders.
@@ -58,6 +58,15 @@ per cookie above: `function() { return !!{{1PC - <cookie>}}; }`
   ([source](../cjs-traffic-source/cjs-traffic-source.js)).
 - `cJS - Ad Placement` — `utm_placement`, persisted per session
   ([source](../cjs-ad-placement/ad-placement.js)).
+
+**Event deduplication:**
+
+- `DLV - gtm.uniqueEventId` — Data Layer Variable reading GTM's built-in
+  `gtm.uniqueEventId` key (page-local event counter); feeds the variable
+  below.
+- `cJS - Custom Event ID` — globally unique event ID for Meta Pixel / CAPI
+  deduplication, cached per `{{DLV - gtm.uniqueEventId}}`
+  ([source](../cjs-custom-event-id/cjs-custom-event-id.js)).
 
 **Page / post / form context** (Custom JS):
 

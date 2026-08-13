@@ -831,6 +831,48 @@
         ],
         "fingerprint": "0",
         "parentFolderId": "2"
+      },
+      {
+        "accountId": "0",
+        "containerId": "0",
+        "variableId": "24",
+        "name": "DLV - gtm.uniqueEventId",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "gtm.uniqueEventId"
+          }
+        ],
+        "fingerprint": "0",
+        "parentFolderId": "1"
+      },
+      {
+        "accountId": "0",
+        "containerId": "0",
+        "variableId": "25",
+        "name": "cJS - Custom Event ID",
+        "type": "jsm",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "javascript",
+            "value": "function() {\n  var id = {{DLV - gtm.uniqueEventId}}; // Page-local counter — the cache key\n\n  if (window.customEventIdKey !== id) {\n    window.customEventIdKey = id;\n    // Globally unique value — this is what actually goes to Meta\n    window.customEventId = (new Date()).getTime() + '.' +\n      Math.random().toString(36).substring(2, 10);\n  }\n\n  return window.customEventId;\n}"
+          }
+        ],
+        "fingerprint": "0",
+        "parentFolderId": "1"
       }
     ],
     "fingerprint": "0"

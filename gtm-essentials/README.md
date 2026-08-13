@@ -24,7 +24,7 @@ Import it to create all of the variables below at once, filed under a
 Placeholder account/container IDs (`0`) are remapped into whatever container you
 import into.
 
-## What it creates (22 variables)
+## What it creates (24 variables)
 
 **First-party cookies** — `1PC - <cookie>` (1st-Party Cookie variables):
 
@@ -54,6 +54,16 @@ above, built from
 - `cJS - Ad Placement` — `utm_placement`, persisted per session
   ([`ad-placement.js`](variables/cjs-ad-placement/ad-placement.js)).
 
+**Event deduplication:**
+
+- `DLV - gtm.uniqueEventId` — Data Layer Variable reading GTM's built-in
+  `gtm.uniqueEventId` key (a page-local event counter). Exists to feed the
+  variable below.
+- `cJS - Custom Event ID` — globally unique event ID for Meta Pixel / CAPI
+  deduplication, cached per `{{DLV - gtm.uniqueEventId}}` so every reference
+  within the same event returns the same ID
+  ([`cjs-custom-event-id.js`](variables/cjs-custom-event-id/cjs-custom-event-id.js)).
+
 **Page / post / form context** (Custom JS):
 
 - `cJS - Page Title` — `document.title`
@@ -82,8 +92,10 @@ URL, and Referrer.
 | Custom Variable Name | Meta Parameter | GA4 Parameter | Value Type | Description |
 |---|---|---|---|---|
 | `cJS - Ad Placement` | `ad_placement` | — | String | Custom JavaScript variable that returns the ad placement for the session. |
+| `cJS - Custom Event ID` | `eventID` (browser) / `event_id` (CAPI) | — | String | Custom JavaScript variable that returns a globally unique event ID so Meta deduplicates Pixel and Conversions API copies of the same event. |
 | `cJS - Traffic Source` | `traffic_source` | — | String | Custom JavaScript variable that returns the traffic source for the session. |
 | `DLV - currency` | `currency` | `currency` | String | The currency for the `value` specified. |
+| `DLV - gtm.uniqueEventId` | — (internal) | — (internal) | Integer | GTM's built-in page-local event counter. Not sent anywhere — it's the cache key for `cJS - Custom Event ID`. |
 | `DLV - item_category` | `content_category` | `items[].item_category` | String | Category of the page/product. Optional. |
 | `DLV - item_id` | `content_ids` | `items[].item_id` | Array of integers or strings | Product IDs associated with the event, such as SKUs. |
 | `DLV - item_name` | `content_name` | `items[].item_name` | String | Name of the page/product. Optional. |
