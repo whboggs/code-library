@@ -36,6 +36,7 @@
         "firingTriggerId": [
           "2147479573"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -221,7 +222,7 @@
         "firingTriggerId": [
           "1"
         ],
-        "tagFiringOption": "ONCE_PER_LOAD",
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -246,6 +247,7 @@
         "firingTriggerId": [
           "1"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -265,6 +267,7 @@
         "firingTriggerId": [
           "2147479553"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       }
