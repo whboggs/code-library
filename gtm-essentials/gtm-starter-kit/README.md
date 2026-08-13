@@ -29,8 +29,8 @@ sure something pushes `form_submit` to the dataLayer.
 | Tag | Type | Fires on | Notes |
 |---|---|---|---|
 | **Config - GA4** | Google tag | Initialization - All Pages | Tag ID = `{{GA4 - Measurement ID}}`. |
-| **GA4 - Event - Form Submit** | GA4 Event | `form_submit` | Event name `ga4e_form_submit`, Measurement ID `{{GA4 - Measurement ID}}`, **Once per page**. Parameters below. |
-| **Meta - Event - Lead - Form Submit** | Custom HTML | `form_submit` | Fires `fbq('track', 'Lead', …)` with page title / traffic source / ad placement. |
+| **GA4 - Event - Form Submit** | GA4 Event | `form_submit` | Event name `ga4e_form_submit`, Measurement ID `{{GA4 - Measurement ID}}`, **Once per event**. Parameters below. |
+| **Meta - Event - Lead - Form Submit** | Custom HTML | `form_submit` | Fires `fbq('track', 'Lead', …)` with page path / traffic source / ad placement, plus `eventID: {{cJS - Custom Event ID}}` for browser/server dedupe. |
 | **Conversion Linker** | Conversion Linker | All Pages | Improves Google Ads click-ID cookie durability. |
 
 **GA4 - Event - Form Submit → event parameters:**
@@ -125,9 +125,9 @@ Full details and source files are in
 
 ## Suggestions
 
-- **Firing option:** *Once per page* means only the **first** form submit on a
-  page load sends the GA4 event. If a page can produce multiple submits, switch
-  the GA4 event (and consider the Meta tag) to *Once per event*.
+- **Firing option:** every tag ships set to *Once per event* (Advanced Settings
+  → Tag firing options), so each trigger event fires the tag at most once —
+  including repeat form submits on the same page load.
 - **Booleans as user properties:** the `*_exists` flags describe the visitor's
   cookies, not the event — consider sending them as GA4 **user properties**
   instead of event parameters.

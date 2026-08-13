@@ -36,6 +36,7 @@
         "firingTriggerId": [
           "2147479573"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -221,7 +222,7 @@
         "firingTriggerId": [
           "1"
         ],
-        "tagFiringOption": "ONCE_PER_LOAD",
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -235,7 +236,7 @@
           {
             "type": "TEMPLATE",
             "key": "html",
-            "value": "<script>\nfbq('track', 'Lead', {\n  lead_type: 'Form Submit', // Define Lead Type\n  content_name: '{{cJS - Page Title}}', // Finds page title\n  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source\n  ad_placement: '{{cJS - Ad Placement}}' // Finds ad placement\n});\n</script>"
+            "value": "<script>\nfbq('track', 'Lead', {\n  lead_type: 'Form Submit', // Define Lead Type\n  // form_name: // (Optional) Translate form ID to Form Name via LUT or Variable\n  content_name: '{{Page Path}}', // Finds page path\n  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source\n  ad_placement: '{{cJS - Ad Placement}}' // Finds ad placement\n}, {\n  eventID: '{{cJS - Custom Event ID}}' // Meta's browser/server dedupe key\n});\n</script>"
           },
           {
             "type": "BOOLEAN",
@@ -246,6 +247,7 @@
         "firingTriggerId": [
           "1"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       },
@@ -265,6 +267,7 @@
         "firingTriggerId": [
           "2147479553"
         ],
+        "tagFiringOption": "ONCE_PER_EVENT",
         "fingerprint": "0",
         "parentFolderId": "2"
       }
