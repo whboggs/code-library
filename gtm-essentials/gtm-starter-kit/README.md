@@ -93,6 +93,11 @@ Full details and source files are in
   ([source](../variables/cjs-traffic-source/cjs-traffic-source.js)).
 - **`cJS - Ad Placement`** — `utm_placement`, persisted per session
   ([source](../variables/cjs-ad-placement/ad-placement.js)).
+- **`DLV - gtm.uniqueEventId`** — GTM's built-in page-local event counter;
+  cache key for the variable below.
+- **`cJS - Custom Event ID`** — globally unique event ID for Meta Pixel /
+  CAPI deduplication, cached per `{{DLV - gtm.uniqueEventId}}`
+  ([source](../variables/cjs-custom-event-id/cjs-custom-event-id.js)).
 - **`cJS - Page Title`**, **`cJS - Post Title`**, **`cJS - Post ID`**,
   **`cJS - Form ID`** — page/post/form context
   ([sources](../variables/)).
