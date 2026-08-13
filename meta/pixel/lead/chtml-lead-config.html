@@ -1,10 +1,14 @@
 <script>
-  // Note: Requires cJS - Traffic Source and cJS - Ad Placement.
-  // Delete these lines if you do not want to add these parameters.
+  // Note: Requires cJS - Traffic Source, cJS - Ad Placement, and
+  // cJS - Custom Event ID. Delete these lines if you do not want
+  // to add these parameters.
 fbq('track', 'Lead', {
   lead_type: 'Form Submit', // Define Lead Type
-  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source
+  // form_name: // (Optional) Translate form ID to Form Name via LUT or Variable
   content_name: '{{Page Path}}', // Finds page path
+  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source
   ad_placement: '{{cJS - Ad Placement}}' // Finds ad placement
+}, {
+  eventID: '{{cJS - Custom Event ID}}' // Meta's browser/server dedupe key
 });
 </script>

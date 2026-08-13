@@ -13,6 +13,7 @@ Fires a Meta Pixel `Lead` event with custom parameters sourced from GTM variable
 - The **base Meta Pixel** tag (`meta/pixel/base/`) must be installed and firing on All Pages — Page View. Without it, `fbq` is undefined and this tag warns and exits.
 - A GTM variable named `cJS - Traffic Source` returning last-touch traffic source (Custom JavaScript variable).
 - A GTM variable named `cJS - Ad Placement` returning the ad placement (Custom JavaScript variable).
+- A GTM variable named [`cJS - Custom Event ID`](../../../gtm-essentials/variables/cjs-custom-event-id/) returning a globally unique event ID (Custom JavaScript variable, plus its `DLV - gtm.uniqueEventId` companion) — sent as `eventID` so Meta can dedupe browser Pixel and Conversions API events.
 - Built-in GTM variable `Page Path` enabled.
 - *(Optional)* A Lookup Table variable named `LUT - Convert Form ID to Text` mapping form IDs to human-readable form names — uncomment the line in `lead-config.html` to send it.
 
@@ -48,6 +49,7 @@ The event is sent with the following parameters:
 | `content_name` | `{{Page Path}}` | Meta standard param — page where the lead occurred |
 | `ad_placement` | `{{cJS - Ad Placement}}` | Custom param — ad placement |
 | `form_name` | `{{LUT - Convert Form ID to Text}}` | *(Optional)* Custom param — human-readable form name |
+| `eventID` | [`{{cJS - Custom Event ID}}`](../../../gtm-essentials/variables/cjs-custom-event-id/) | Meta's browser/server dedupe key — passed in the event options (second `fbq` argument), not the custom-data payload |
 
 Empty values are stripped before sending.
 
@@ -58,7 +60,7 @@ The event logic is hosted on jsDelivr and currently pulled from `@main` for test
 ## Known limitations
 
 - **One lead type per tag**: `lead_type` is hardcoded in the cHTML loader. Duplicate the tag for different lead types (Phone Call, Demo Request, etc.) and edit the value.
-- **No event deduplication**: If both the browser pixel and a server-side CAPI integration send Lead events, you'll need to add an `event_id` to dedupe. Not handled here.
+- **Event deduplication needs both sides**: the tag sends `eventID` from [`cJS - Custom Event ID`](../../../gtm-essentials/variables/cjs-custom-event-id/), but Meta only dedupes if your server-side CAPI integration sends the **same** value as `event_id` for the same event.
 - **No consent mode integration**: Handle in your CMP separately.
 
 ## Disclaimer
