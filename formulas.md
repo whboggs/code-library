@@ -27,3 +27,125 @@
 - **100% Video Play Rate:** 100% Video Plays / Impressions
 - **CRSS Rate:** (Post Comments + Post Reactions + Post Saves + Post Shares) ÷ Impressions
 - **Repeat Play Rate:** 50% Video Plays / Reach
+
+## Ad Culling
+
+Statistical cull rule for underperforming ads. Answers the question: *if this ad's true CPA were exactly at goal, how unlikely is the result we're actually seeing?* If the answer is "unlikely enough," the ad is probably not at goal and can be cut.
+
+Uses the **Garwood exact Poisson upper bound** at `2k+2` degrees of freedom, where `k` = observed conversions. This is the standard exact interval and guarantees at least the stated coverage.
+
+### The rule
+
+```
+Cull if:  {Actual CPA} > {Goal CPA} × {Multiplier}
+```
+
+At 0 conversions CPA is undefined, so the same multiplier is compared against spend instead:
+
+```
+Cull if:  {Spend} > {Goal CPA} × {Multiplier}
+```
+
+### Underlying formula
+
+```
+λ_upper    = ½ · χ²(1−α, 2k+2)
+Multiplier = λ_upper / k
+```
+
+Where `α` is the false-positive tolerance (α = 0.05 for the 95% table, 0.20 for the 80% table, etc.).
+
+At k=0 the chi-square term collapses to a closed form — no lookup needed:
+
+```
+Multiplier (k=0) = ln(1/α)
+```
+
+Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 spend.
+
+### 95% confidence
+*Cull ads with a 95% chance of not hitting goal CPA. Most conservative — longest leash before cutting.*
+
+| Conversions | Multiplier |
+| --- | --- |
+| 0 † | 3.00 |
+| 1 | 4.74 |
+| 2 | 3.15 |
+| 5 | 2.10 |
+| 10 | 1.70 |
+| 15 | 1.54 |
+| 20 | 1.45 |
+| 30 | 1.36 |
+| 50 | 1.27 |
+
+
+† Compared against **spend**, not CPA — CPA is undefined at zero conversions.
+
+### 90% confidence
+
+| Conversions | Multiplier |
+| --- | --- |
+| 0 † | 2.30 |
+| 1 | 3.89 |
+| 2 | 2.66 |
+| 5 | 1.85 |
+| 10 | 1.54 |
+| 15 | 1.42 |
+| 20 | 1.35 |
+| 30 | 1.28 |
+| 50 | 1.21 |
+
+
+† Compared against **spend**, not CPA — CPA is undefined at zero conversions.
+
+### 85% confidence
+
+| Conversions | Multiplier |
+| --- | --- |
+| 0 † | 1.90 |
+| 1 | 3.37 |
+| 2 | 2.36 |
+| 5 | 1.70 |
+| 10 | 1.44 |
+| 15 | 1.34 |
+| 20 | 1.29 |
+| 30 | 1.23 |
+| 50 | 1.17 |
+
+
+† Compared against **spend**, not CPA — CPA is undefined at zero conversions.
+
+### 80% confidence
+*Most aggressive — cuts fastest, highest false-positive rate. Roughly 1 in 5 culled ads would have hit goal given more data.*
+
+| Conversions | Multiplier |
+| --- | --- |
+| 0 † | 1.61 |
+| 1 | 2.99 |
+| 2 | 2.14 |
+| 5 | 1.58 |
+| 10 | 1.37 |
+| 15 | 1.28 |
+| 20 | 1.24 |
+| 30 | 1.19 |
+| 50 | 1.14 |
+
+
+† Compared against **spend**, not CPA — CPA is undefined at zero conversions.
+
+### Worked example
+
+Goal CPA = $80, ad has spent $520 with 5 conversions → actual CPA $104.
+
+At 95%: `$80 × 2.10 = $168`. Actual CPA of $104 is below it → **keep**.
+At 80%: `$80 × 1.58 = $126`. Actual CPA of $104 is still below it → **keep**.
+
+Same ad at 5 conversions on $900 spend → actual CPA $180, above both → **cull**.
+
+### Notes and guardrails
+
+- **Interpolate conservatively.** For conversion counts between table rows, round *down* to the nearest listed row (e.g. k=7 uses the k=5 multiplier). This errs toward keeping ads.
+- **Attribution lag.** The zero- and low-conversion cases are the most exposed to conversions that haven't landed yet. Gate the rule behind a minimum ad age (7–14 days depending on the account's click window) or exclude the most recent N days of spend from the calculation. Without this, the rule will cull ads whose conversions are still in flight.
+- **Learning phase.** On Meta, a $80 goal CPA triggers a cull at $240 spend under the 95% zero-conversion rule — which can land inside or barely past learning. Consider pinning the zero-conversion rule at 95% even when running 80% or 85% elsewhere, since a false positive costs the most when there's no signal at all.
+- **This is a one-sided test.** It only asks whether the ad is worse than goal. It says nothing about whether one ad beats another — for that, use a proper two-sample comparison.
+- **Interval convention.** These tables use `2k+2` degrees of freedom, which counts the observed `k` in the tail. An earlier version of this framework used `2k`, which produces smaller multipliers (more aggressive culling) and has the side effect that k=0 and k=1 collide at the same threshold — the first conversion buys the ad no additional runway. The `2k+2` convention fixes that: k=0 culls at 3.00× goal CPA in spend, k=1 at 4.74× in CPA.
