@@ -4,7 +4,7 @@
 jQuery(document).ready(function($) {
   jQuery(document).on('submit_success', function(event) {
     dataLayer.push({
-      event: 'form_submit',
+      event: 'elementor_form_submit',
       form_name: 'elementor_generic',
       form_target: event.target.action || 'unknown'
     });
