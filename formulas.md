@@ -148,4 +148,23 @@ Same ad at 5 conversions on $900 spend → actual CPA $180, above both → **cul
 - **Attribution lag.** The zero- and low-conversion cases are the most exposed to conversions that haven't landed yet. Gate the rule behind a minimum ad age (7–14 days depending on the account's click window) or exclude the most recent N days of spend from the calculation. Without this, the rule will cull ads whose conversions are still in flight.
 - **Learning phase.** On Meta, a $80 goal CPA triggers a cull at $240 spend under the 95% zero-conversion rule — which can land inside or barely past learning. Consider pinning the zero-conversion rule at 95% even when running 80% or 85% elsewhere, since a false positive costs the most when there's no signal at all.
 - **This is a one-sided test.** It only asks whether the ad is worse than goal. It says nothing about whether one ad beats another — for that, use a proper two-sample comparison.
-- **Interval convention.** These tables use `2k+2` degrees of freedom, which counts the observed `k` in the tail. An earlier version of this framework used `2k`, which produces smaller multipliers (more aggressive culling) and has the side effect that k=0 and k=1 collide at the same threshold — the first conversion buys the ad no additional runway. The `2k+2` convention fixes that: k=0 culls at 3.00× goal CPA in spend, k=1 at 4.74× in CPA.
+- **Interval convention.** These tables use `2k+2` degrees of freedom. This is a deliberate choice tied to how evaluation is triggered — see *Why 2k+2* below before changing it or porting it to code.
+
+### Why 2k+2
+
+`2k` and `2k+2` are not competing approximations of the same quantity. Each is the *exact* answer to a different sampling design, and the right one depends entirely on what triggers the evaluation.
+
+**Fixed-window sampling** — an ad is inspected at an arbitrary moment (a scheduled script reading current cost and conversions). Spend is fixed by the calendar; conversion count is the random variable. This is Poisson, and the exact bound is **2k+2**.
+
+**Inverse sampling** — evaluation fires the instant an ad records its k-th conversion, and the question is how much spend it took to get there. Conversion count is fixed by the trigger; spend is the random variable. This is Gamma/Erlang, and the exact bound is **2k**.
+
+**This reference uses 2k+2** because evaluation is scheduled, not tier-triggered: the Google Ads Script runs on a cadence and reads whatever cost and conversions each entity currently has. If the trigger is ever changed so that evaluation fires only on tier crossings, `2k` becomes the correct convention and these tables should be regenerated.
+
+The zero-conversion rule is necessarily fixed-window regardless — there is no "0th conversion" to wait for — which is why it is always `ln(1/α)`. An earlier version of this framework used `2k` for the conversion tiers while pairing it with the fixed-window zero rule; the resulting k=0 / k=1 threshold collision was a symptom of mixing two sampling frames in one table, not an error in the `2k` math itself.
+
+**Alternatives considered and rejected:**
+
+- **Wald normal approximation** (`Multiplier = 1 + z/√k`). Rejected. Returns 0 at k=0, so it culls zero-conversion ads at any spend, and it undercovers badly at low `k` — precisely where the decision is hardest. Do not use, even though the closed form is tempting for scripting.
+- **Jeffreys / gamma credible interval** (`2k+1`). Rejected on cost-benefit, not correctness. It has the best average coverage of the three, but differs from `2k+2` by less than 0.05 at k≥10, and being a credible rather than confidence interval it carries an interpretation burden every time the number has to be explained.
+
+**Porting note:** the Gamma(k, 1/k) relative-CPL formulation used in the CPL Reliability Suite and cull-rule generator is the `2k` convention. Any tooling built on that formulation predates this decision and will produce different multipliers than the tables above.
