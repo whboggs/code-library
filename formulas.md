@@ -77,6 +77,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.45 |
 | 30 | 1.36 |
 | 50 | 1.27 |
+| 75 | 1.21 |
+| 100 | 1.18 |
+| 125 | 1.16 |
+| 150 | 1.15 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -94,6 +98,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.35 |
 | 30 | 1.28 |
 | 50 | 1.21 |
+| 75 | 1.16 |
+| 100 | 1.14 |
+| 125 | 1.12 |
+| 150 | 1.11 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -111,6 +119,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.29 |
 | 30 | 1.23 |
 | 50 | 1.17 |
+| 75 | 1.13 |
+| 100 | 1.11 |
+| 125 | 1.10 |
+| 150 | 1.09 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -129,6 +141,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.24 |
 | 30 | 1.19 |
 | 50 | 1.14 |
+| 75 | 1.11 |
+| 100 | 1.09 |
+| 125 | 1.08 |
+| 150 | 1.07 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
