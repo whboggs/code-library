@@ -77,6 +77,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.45 |
 | 30 | 1.36 |
 | 50 | 1.27 |
+| 75 | 1.21 |
+| 100 | 1.18 |
+| 125 | 1.16 |
+| 150 | 1.15 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -94,6 +98,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.35 |
 | 30 | 1.28 |
 | 50 | 1.21 |
+| 75 | 1.16 |
+| 100 | 1.14 |
+| 125 | 1.12 |
+| 150 | 1.11 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -111,6 +119,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.29 |
 | 30 | 1.23 |
 | 50 | 1.17 |
+| 75 | 1.13 |
+| 100 | 1.11 |
+| 125 | 1.10 |
+| 150 | 1.09 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -129,6 +141,10 @@ Example: goal CPA $80 at 95% → cull a zero-conversion ad once it passes $240 s
 | 20 | 1.24 |
 | 30 | 1.19 |
 | 50 | 1.14 |
+| 75 | 1.11 |
+| 100 | 1.09 |
+| 125 | 1.08 |
+| 150 | 1.07 |
 
 
 † Compared against **spend**, not CPA — CPA is undefined at zero conversions.
@@ -148,6 +164,14 @@ Same ad at 5 conversions on $900 spend → actual CPA $180, above both → **cul
 - **Attribution lag.** The zero- and low-conversion cases are the most exposed to conversions that haven't landed yet. Gate the rule behind a minimum ad age (7–14 days depending on the account's click window) or exclude the most recent N days of spend from the calculation. Without this, the rule will cull ads whose conversions are still in flight.
 - **Learning phase.** On Meta, a $80 goal CPA triggers a cull at $240 spend under the 95% zero-conversion rule — which can land inside or barely past learning. Consider pinning the zero-conversion rule at 95% even when running 80% or 85% elsewhere, since a false positive costs the most when there's no signal at all.
 - **This is a one-sided test.** It only asks whether the ad is worse than goal. It says nothing about whether one ad beats another — for that, use a proper two-sample comparison.
+- **The rule tests the entity as configured — not the goal.** A failed test says the composite (this creative, audience, placement, bid, offer, landing page) is not at goal. It does not apportion blame among those parts, and it cannot tell you whether the goal is reachable by some *other* configuration, because it holds no data on ads that were never run. "Cull this ad" is supported by the math; "the goal is unrealistic" is not.
+
+- **Run it on the entity you would actually cull.** Applied to an ad set or campaign, the rule tests a spend-weighted blend, and a blend can fail while an ad inside it succeeds. An ad-set-level failure is a prompt to decompose to the ad level, not a verdict on the ads.
+
+- **Past roughly k=150 the rule stops adding information.** The multiplier is asymptotic to ~1.15 at 95%, so a high-volume entity that fails is failing by a margin more data will not overturn. At that point the decision is a business one — reallocate, rebuild, or reset the goal — not a statistical one.
+
+- **To estimate the true CPA rather than test it,** invert the same Poisson for a two-sided interval: `Spend / λ_hi` to `Spend / λ_lo`, where `λ_hi` solves `P(K ≤ k | λ) = α/2` and `λ_lo` solves `P(K ≥ k | λ) = α/2`. This returns the range the entity is plausibly operating in, which is more actionable than pass/fail once `k` is large. Note the interval describes performance already observed — it is not a forecast, and its optimistic end is not a target the entity can be expected to reach.
+
 - **Interval convention.** These tables use `2k+2` degrees of freedom. This is a deliberate choice tied to how evaluation is triggered — see *Why 2k+2* below before changing it or porting it to code.
 
 ### Why 2k+2
