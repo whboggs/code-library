@@ -23,13 +23,22 @@ adding the hidden form fields with exactly the right names.
   rendered straight from the live field map, before naming anything. If the
   fetch fails it asks for the dashboard's **Export CSV** rather than guessing,
   and it treats a client's own field map as outranking the standard one.
+- **Add all of them by default** — the whole standard set unless the user says
+  otherwise, because a field that was never on the form has no history to
+  answer with later and cannot be backfilled.
 - **Reusing fields that are already there** — when a site already runs
-  Attributer or already has hidden `utm_*` inputs, remap those existing field
-  names onto MTK's `last.*` data sources instead of adding parallel fields, so
-  the CRM columns and reports built on them keep working. Carries the
-  Attributer field/token → MTK mapping, the loose-UTM mapping, the three ways
-  to apply a remap, and the value-shape changes that survive the swap (channel
-  wording, landing page as a path).
+  Attributer or already has hidden `utm_*` inputs, work out what each existing
+  field corresponds to, then **rename it to MTK naming** rather than freezing
+  the old name in place. Carries the Attributer field/token → MTK mapping, the
+  loose-UTM mapping, how to apply a rename per platform (including the
+  Default-Value platforms where the name isn't yours to set), the CRM
+  re-pointing that a rename implies, and the value-shape changes that survive
+  it (channel wording, landing page as a path). The Attributer drilldowns are
+  treated as a starting guess to confirm with the user, not a mapping — what
+  lands in them depends on which UTMs that client actually sends.
+- **A final ordering pass** — First, then Last, then IDs, then Insights, on the
+  form and in the field map, so a lead record reads as one first-touch story
+  then one last-touch story instead of alternating dimension by dimension.
 - **Verification steps** and the most common failure (a name mismatch
   producing a silently empty field).
 
