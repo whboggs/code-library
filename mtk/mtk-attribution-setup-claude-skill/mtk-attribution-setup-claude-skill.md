@@ -1,6 +1,6 @@
 ---
 name: mtk-attribution-setup
-description: Sets up MTK Attribution on a client website — installing the tag, building the field map, and adding the hidden form fields that carry attribution data into the CRM. Use this skill whenever the user says "set up MTK Attribution", "install MTK on [client]", "add the attribution fields", "what fields do I add to this form", "add MTK to Webflow / Wix / Squarespace / Gravity Forms / Elementor / Jotform / GoHighLevel / Contact Form 7 / Zoho / Framer", "the attribution fields are coming through empty", "they already use Attributer", "the form already has UTM fields", "can we reuse the fields that are already there", or any close variant where MTK Attribution is being installed on or wired into a site or form. Always use this skill for these requests — the field names and labels must match exactly, and guessing them silently breaks capture.
+description: Sets up MTK Attribution on a client website — installing the tag, building the field map, and adding the hidden form fields that carry attribution data into the CRM. Use this skill whenever the user says "set up MTK Attribution", "install MTK on [client]", "add the attribution fields", "what fields do I add to this form", "add MTK to Webflow / Wix / Squarespace / Gravity Forms / Elementor / Jotform / GoHighLevel / Contact Form 7 / Zoho / Framer", "the attribution fields are coming through empty", "they already use Attributer", "the form already has UTM fields", "can we reuse the fields that are already there", or any close variant where MTK Attribution is being installed on or wired into a site or form. Always use this skill for these requests — it fetches the current field list from boggsmtk.com rather than carrying its own copy, because the field names and labels must match exactly and guessing them silently breaks capture.
 ---
 
 # MTK Attribution — setup
@@ -54,7 +54,7 @@ CSV from the config screen and handed to a developer.
 3. **Confirm the field map** — the dashboard config screen is what the tag
    actually reads. Toggle off anything the client doesn't need; leave the rest.
 4. **Add the form fields** — hidden fields on every form that should carry
-   attribution. Naming rules below. First check whether the forms already
+   attribution. Fetch the field reference first (below); naming rules below. First check whether the forms already
    carry Attributer or `utm_*` fields; if they do, remap those instead of
    duplicating them — see "Reusing fields that are already there".
 5. **Verify** — submit a test lead and confirm values land.
@@ -72,7 +72,8 @@ field names, not like internal keys.
 **The HTML `name` attribute must be exactly the `mtk_*` string.** This one is
 not cosmetic — the tag matches fields by this name and fills them. Change a
 character and the field goes empty. `mtk_first_channel` is required to be
-literally `mtk_first_channel`.
+literally `mtk_first_channel`. Take every name from the fetched field
+reference, never from memory.
 
 **On platforms where the label doubles as the identifier** (Squarespace, Wix),
 use the Label column — that is precisely what it is for.
@@ -82,98 +83,55 @@ and others behave the same), paste the **Token** into the field's Default
 Value instead. The tag replaces it with the resolved value on page load and
 again at submit.
 
-## Fields
+## Fields — fetch them, never recall them
 
-41 fields. Legacy spellings (`mtk_ft_*`, `mtk_lt_*`, `mtk_lt_gclid`,
-`mtk_summary`, and friends) still resolve for old forms but must **not** be
-used on anything new — always use the names below.
+**This skill does not carry the field list.** Field names, tokens, and data
+sources change as MTK gains fields, and a copy pasted into a skill goes stale
+silently: the names stop matching, the form fills nothing, and no error
+surfaces anywhere. So the list lives in one place and is fetched at run time.
 
-Deliberately excluded from this list: `mtk_attribution_summary` (the
-all-fields roll-up, for CRMs that only accept one field) and
-`mtk_journey_json` (the machine-readable journey). Add either by hand if a
-client specifically needs it.
+**Before naming a single field, fetch:**
 
-### Query sources
+```
+https://www.boggsmtk.com/products/attribution/docs/fields.md
+```
 
-| Label | Field name (HTML `name`) | Token | Data source |
-|---|---|---|---|
-| First Ad Placement | `mtk_first_ad_placement` | `[mtk:first.ad_placement]` | `first.ad_placement` |
-| Last Ad Placement | `mtk_last_ad_placement` | `[mtk:last.ad_placement]` | `last.ad_placement` |
-| First Campaign | `mtk_first_campaign` | `[mtk:first.campaign]` | `first.campaign` |
-| Last Campaign | `mtk_last_campaign` | `[mtk:last.campaign]` | `last.campaign` |
-| First Channel | `mtk_first_channel` | `[mtk:first.channel]` | `first.channel` |
-| Last Channel | `mtk_last_channel` | `[mtk:last.channel]` | `last.channel` |
-| First Content | `mtk_first_content` | `[mtk:first.content]` | `first.content` |
-| Last Content | `mtk_last_content` | `[mtk:last.content]` | `last.content` |
-| First Landing Page | `mtk_first_landing_page` | `[mtk:first.landing_page]` | `first.landing_page` |
-| Last Landing Page | `mtk_last_landing_page` | `[mtk:last.landing_page]` | `last.landing_page` |
-| First Landing Page Group | `mtk_first_landing_page_group` | `[mtk:first.landing_page_group]` | `first.landing_page_group` |
-| Last Landing Page Group | `mtk_last_landing_page_group` | `[mtk:last.landing_page_group]` | `last.landing_page_group` |
-| First Medium | `mtk_first_medium` | `[mtk:first.medium]` | `first.medium` |
-| Last Medium | `mtk_last_medium` | `[mtk:last.medium]` | `last.medium` |
-| First Query | `mtk_first_query` | `[mtk:first.query]` | `first.query` |
-| Last Query | `mtk_last_query` | `[mtk:last.query]` | `last.query` |
-| First Referrer | `mtk_first_referrer` | `[mtk:first.referrer]` | `first.referrer` |
-| Last Referrer | `mtk_last_referrer` | `[mtk:last.referrer]` | `last.referrer` |
-| First Source | `mtk_first_source` | `[mtk:first.source]` | `first.source` |
-| Last Source | `mtk_last_source` | `[mtk:last.source]` | `last.source` |
-| First Term | `mtk_first_term` | `[mtk:first.term]` | `first.term` |
-| Last Term | `mtk_last_term` | `[mtk:last.term]` | `last.term` |
+Raw Markdown, rendered straight from the live field map. It gives you, per
+field: the visible **Field Name**, the **HTML Name** the tag matches on, the
+**Token** for Default-Value platforms, the **Data Source**, and what each
+source captures — grouped as query sources, cookies & click IDs, and insights,
+plus the handful that are not in the standard set.
 
-`first.*` is frozen at the visitor's first ever visit. `last.*` refreshes each
-new session.
+### If the fetch fails
 
-### Cookies & click IDs
+Do not reconstruct the list from memory and do not guess a field name — that
+is the failure this skill exists to prevent. Instead, ask the user for the
+field map directly: the dashboard's **Export CSV** button on the field-map
+screen dumps the live list as a spreadsheet, with the same columns. That is a
+better answer anyway; see below.
 
-| Label | Field name (HTML `name`) | Token | Data source |
-|---|---|---|---|
-| gclid | `mtk_gclid` | `[mtk:last_paid.gclid]` | `last_paid.gclid` |
-| gbraid | `mtk_gbraid` | `[mtk:last_paid.gbraid]` | `last_paid.gbraid` |
-| wbraid | `mtk_wbraid` | `[mtk:last_paid.wbraid]` | `last_paid.wbraid` |
-| msclkid | `mtk_msclkid` | `[mtk:last_paid.msclkid]` | `last_paid.msclkid` |
-| fbclid | `mtk_fbclid` | `[mtk:param:fbclid]` | `param:fbclid` |
-| fbc | `mtk_fbc` | `[mtk:cookie:_fbc]` | `cookie:_fbc` |
-| fbp | `mtk_fbp` | `[mtk:cookie:_fbp]` | `cookie:_fbp` |
+### The client's own map beats the standard one
 
-The Google and Microsoft click IDs read from `last_paid.*` — the click ID of
-the most recent **paid** touch, which stays put through every direct and
-organic session afterward. That is what offline conversion import needs: a
-lead who clicked the ad and came back direct three weeks later still carries
-the ID that earned the credit. Do not swap these to `last.*`; that empties as
-soon as the visitor returns directly.
+The fetched file is the **standard** map — what a new license ships with. A
+particular client's map can differ: rows toggled off, renamed, or repointed at
+different data sources. When it matters — a field is coming through empty, or
+you are about to tell someone what to put on their form — read that client's
+actual map rather than the standard one.
 
-`fbclid` is deliberately different. Meta appends `fbclid` to organic links
-too, so a bare `fbclid` is classified Organic Social and never reaches the
-paid record — `last_paid.fbclid` would be narrower, not better. For Conversions
-API matching, `param:fbclid` plus the `_fbc` cookie is the right pair.
+In order of authority:
 
-### Insights
-
-| Label | Field name (HTML `name`) | Token | Data source |
-|---|---|---|---|
-| Journey String | `mtk_journey_string` | `[mtk:journey.string]` | `journey.string` |
-| Session Count | `mtk_session_count` | `[mtk:session.count]` | `session.count` |
-| Pageview Count | `mtk_pageview_count` | `[mtk:pageview.count]` | `pageview.count` |
-| Paid Touch Count | `mtk_paid_touch_count` | `[mtk:paid_touch_count]` | `paid_touch_count` |
-| Last Paid Touch | `mtk_last_paid_touch` | `[mtk:last.paid_touch]` | `last.paid_touch` |
-| Time Since Last Paid Touch | `mtk_time_since_last_paid_touch` | `[mtk:time_since_last_paid_touch]` | `time_since_last_paid_touch` |
-| Page Path | `mtk_page_path` | `[mtk:page.path]` | `page.path` |
-| Page URL | `mtk_page_url` | `[mtk:page.url]` | `page.url` |
-| Time To Conversion | `mtk_time_to_conversion` | `[mtk:time_to_conversion]` | `time_to_conversion` |
-| Conversion Unix | `mtk_conversion_unix` | `[mtk:conversion_unix]` | `conversion_unix` |
-| Conversion Datetime | `mtk_conversion_datetime` | `[mtk:conversion_datetime]` | `conversion_datetime` |
-| Custom Conversion Time | `mtk_custom_conversion_time` | `[mtk:custom_conversion_time]` | `custom_conversion_time` |
-
-`Conversion Datetime` is the format Google Ads offline conversion import
-expects. `Custom Conversion Time` is shaped by per-license options in the
-dashboard, for CRM and spreadsheet imports.
+1. **That client's field map**, from the dashboard at `https://app.boggsmtk.com`
+   under their license, or the CSV exported from it.
+2. **The standard map**, fetched from the URL above.
+3. **Stop and ask.** Never a guess.
 
 ## Reusing fields that are already there — Attributer and UTMs
 
 A site that already runs Attributer, or that already has hidden `utm_*` inputs
 on its forms, does not arrive empty. Those fields are already columns on the
 CRM record, already in saved reports, already firing automations. **Before you
-add 41 new fields, check what is already on the form and try to remap it.**
+add the full set of new fields, check what is already on the form and try to
+remap it.**
 Point MTK at the names that are already there and the same columns keep
 filling — from MTK now, with no CRM rework and no history gap.
 
@@ -223,6 +181,36 @@ for character.
 | Landing Page | `[landingpage]` | `last.landing_page` |
 | Landing Page Group | `[landingpagegroup]` | `last.landing_page_group` |
 
+**The three drilldowns are a starting guess, not a mapping — confirm them with
+the user before applying.** Attributer fills a drilldown from whatever UTMs
+that client actually sends, and falls back to its own derived values when they
+send none, so what is really sitting in `Channel Drilldown 2` varies from
+account to account: campaign name on one, ad group on another, `No Campaign` on
+a third, something bespoke on a fourth. The row above is what it holds by
+default, and the default is often wrong.
+
+So do not apply the drilldown rows blind. Instead:
+
+1. **Look at real values first.** Pull a handful of recent leads out of the CRM
+   and read what is actually in each drilldown column. Two minutes of real data
+   beats any table here.
+2. **Ask the user what each drilldown means to them**, and what their reporting
+   reads out of it — quote back the values you found. Somebody who groups
+   pipeline by ad group out of Drilldown 3 needs a different mapping than
+   somebody who reads keywords out of it.
+3. **Then map**, from the dimension list in the field reference:
+   `last.source`, `last.medium`, `last.campaign`, `last.term`, `last.content`,
+   `last.ad_placement`, `last.channel`.
+
+If the values are mixed — some leads carrying campaign names and some carrying
+`No Campaign` — say so and let the user decide whether the column is worth
+reusing at all. A column that means two things is often better replaced by a
+clean `mtk_last_campaign` than remapped.
+
+`Channel`, `Landing Page`, and `Landing Page Group` are safer: they are
+derived by Attributer the same way for everyone, so they do not need the same
+interrogation. They still carry the value-shape changes below.
+
 Three shape changes to warn the client about, because the column name survives
 the swap and the values inside it do not:
 
@@ -235,11 +223,9 @@ the swap and the values inside it do not:
   `/pricing`; Attributer stored the full URL. There is no full-landing-URL
   data source (`page.url` is the *conversion* page), so say so rather than
   substituting it.
-- **Drilldown 3 is not always a term.** Attributer's finest level shifts by
-  channel — ad group in some docs, `utm_term` in others, `No Terms` when
-  absent. `last.term` is strictly `utm_term`. If the client actually reads ad
-  group out of that column, `last.content` or `last.ad_placement` may fit
-  better; check the real values before promising a match.
+- **`No Campaign` / `No Terms` become empty.** Attributer writes those literal
+  strings when a UTM is missing; MTK leaves the field empty instead. A report
+  that counts `No Campaign` rows silently drops to zero rather than erroring.
 
 ### Loose UTM fields → MTK
 
@@ -263,8 +249,8 @@ which is the bug most homegrown UTM-capture scripts already have. `last.*` is
 stored on the visit and survives every page and every return, and fixing that
 silently is most of the value of the remap.
 
-The click IDs keep their standard sources for the reason the table above
-already gives: `last_paid.*` for Google and Microsoft so a lead who returns
+The click IDs keep their standard sources for the reason the fetched field
+reference gives: `last_paid.*` for Google and Microsoft so a lead who returns
 direct still carries the ID that earned the credit, and `param:fbclid` for
 Meta.
 
@@ -292,7 +278,8 @@ doing the pushing.
 2. Check the `mtk_attribution` dataLayer event fires with the fields populated.
 3. Submit a test lead and confirm the values arrive in the CRM.
 4. Empty fields are almost always a name mismatch — compare the form's
-   HTML `name` against the table above, character for character.
+   HTML `name` against the field reference, character for character. Fetch it
+   again rather than working from what you remember of it.
 5. For anything else, work the troubleshooting page:
    https://www.boggsmtk.com/products/attribution/troubleshooting
 
@@ -301,26 +288,31 @@ datetime fields render against the visitor's clock instead.
 
 ## Keeping this skill current
 
-**This file duplicates information that lives elsewhere. When any of it
-changes, update this file in the same change.** It goes stale silently — a
-wrong field name here produces an empty field on a client's form with no
-error anywhere.
+**This file is handed to customers, who run it in their own Claude.** A wrong
+detail here produces an empty field on a client's form with no error anywhere,
+in an account nobody here is watching — so it has to stay correct without
+anyone remembering to update it.
 
-Update this skill whenever:
+That is why the field list is fetched rather than written down. **Do not paste
+the field list back into this file**, however convenient it looks: the moment
+a field is added or renamed, every installed copy of this skill starts handing
+out names that no longer match.
 
-- **A field name, label, or data source changes**, or a field is added or
-  removed. Source of truth: `DEFAULT_FIELD_MAP` and `FIELD_TITLES` in
-  `src/lib/mtk.ts` in the `whboggs/boggsmtk` repo. The dashboard's
-  **Export CSV** button on the field-map screen dumps the current, live list.
+What is left here is prose that does not change with the field map. Update
+this skill whenever:
+
 - **A docs page is added, removed, or moved** — the URLs and platform slugs
-  above are hardcoded.
+  above are hardcoded, including
+  `/products/attribution/docs/fields.md` itself. If that endpoint ever moves,
+  this file is what points at it.
 - **A platform's install method changes** (e.g. a form tool starts allowing
   real field names), which changes the Method column.
 - **Attributer renames a field or changes a token**, which breaks the
   remapping table. Source of truth: https://help.attributer.io.
-- **The engine gains or renames a data source** — `whboggs/mtk-attribution`,
-  `src/engine.js`.
 
-The 41 fields listed here are the standard map minus `mtk_attribution_summary`
-and `mtk_journey_json`; if the standard map changes size, this count changes
-with it.
+Field names, labels, data sources, and the count no longer live here — they
+come from `DEFAULT_FIELD_MAP` and `FIELD_TITLES` in `src/lib/mtk.ts`
+(`whboggs/boggsmtk`), rendered to the fetched endpoint on every deploy. Adding
+a field there needs no change to this file. Same for a new engine data source
+(`whboggs/mtk-attribution`, `src/engine.js`): it shows up in the reference on
+its own.

@@ -17,10 +17,12 @@ adding the hidden form fields with exactly the right names.
   HTML `name` attribute must be exactly `mtk_first_channel` because the tag
   matches on it. Click ID and Meta cookie labels stay lowercase (`gclid`,
   `fbc`) — they're wire identifiers, not prose.
-- **All 41 fields** — Label, HTML name, `[mtk:…]` token, and data source, in
-  three groups: query sources, cookies & click IDs, and insights. Canonical
-  names only; the legacy `mtk_ft_*` / `mtk_lt_*` spellings are called out as
-  off-limits for new work.
+- **A fetch step instead of a field list** — the skill carries no copy of the
+  fields. It fetches
+  `https://www.boggsmtk.com/products/attribution/docs/fields.md`, raw Markdown
+  rendered straight from the live field map, before naming anything. If the
+  fetch fails it asks for the dashboard's **Export CSV** rather than guessing,
+  and it treats a client's own field map as outranking the standard one.
 - **Reusing fields that are already there** — when a site already runs
   Attributer or already has hidden `utm_*` inputs, remap those existing field
   names onto MTK's `last.*` data sources instead of adding parallel fields, so
@@ -31,9 +33,9 @@ adding the hidden form fields with exactly the right names.
 - **Verification steps** and the most common failure (a name mismatch
   producing a silently empty field).
 
-Excluded from the field list on purpose: `mtk_attribution_summary` (the
-all-fields roll-up) and `mtk_journey_json` (the machine-readable journey).
-Both still exist and can be added by hand when a client needs them.
+`mtk_attribution_summary` (the all-fields roll-up) and `mtk_journey_json` (the
+machine-readable journey) are listed in the fetched reference under "Not in the
+standard set" — real fields, just not ones a form gets by default.
 
 ## Installing it in Claude
 
@@ -50,21 +52,25 @@ Claude reads to decide when to trigger the skill — keep it intact.
 
 ## Keeping it current
 
-**This skill duplicates information that lives elsewhere, and it goes stale
-silently** — a wrong field name here produces an empty field on a client's
-form with no error anywhere. Update it in the same change as:
+This skill is meant to be handed to customers, who run it in their own Claude.
+A wrong detail produces an empty field on a client's form with no error
+anywhere, in an account nobody here is watching — so field names are fetched,
+not written down. **Do not paste the field list back into the skill.** The
+moment a field is added or renamed, every installed copy would start handing
+out names that no longer match.
 
-- a field name, label, or data source change, or a field added or removed —
-  source of truth is `DEFAULT_FIELD_MAP` and `FIELD_TITLES` in
-  `src/lib/mtk.ts` (`whboggs/boggsmtk`); the dashboard's **Export CSV** on the
-  field-map screen dumps the live list
+Adding, renaming, or repointing a field needs no change here at all: the
+reference is rendered from `DEFAULT_FIELD_MAP` and `FIELD_TITLES` in
+`src/lib/mtk.ts` (`whboggs/boggsmtk`) on every deploy. Same for a new engine
+data source (`whboggs/mtk-attribution`, `src/engine.js`).
+
+What still needs updating by hand:
+
 - a docs page added, removed, or moved — the URLs and platform slugs are
-  hardcoded in the skill
+  hardcoded in the skill, `/products/attribution/docs/fields.md` included
 - a platform changing its install method
 - Attributer renaming a field or changing a token, which breaks the remapping
   table (https://help.attributer.io)
-- the engine gaining or renaming a data source (`whboggs/mtk-attribution`,
-  `src/engine.js`)
 
-The skill file repeats this list in its own "Keeping this skill current"
-section, so whoever opens it sees the obligation too.
+The skill file repeats this in its own "Keeping this skill current" section,
+so whoever opens it sees the obligation too.
