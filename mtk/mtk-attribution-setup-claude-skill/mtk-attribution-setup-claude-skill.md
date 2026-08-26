@@ -52,12 +52,17 @@ CSV from the config screen and handed to a developer.
 2. **Install the tag** — follow the platform guide above. Usually GTM, but
    some platforms take the snippet directly.
 3. **Confirm the field map** — the dashboard config screen is what the tag
-   actually reads. Toggle off anything the client doesn't need; leave the rest.
+   actually reads. Leave the standard set on unless the client has asked for
+   something off.
 4. **Add the form fields** — hidden fields on every form that should carry
-   attribution. Fetch the field reference first (below); naming rules below. First check whether the forms already
-   carry Attributer or `utm_*` fields; if they do, remap those instead of
-   duplicating them — see "Reusing fields that are already there".
-5. **Verify** — submit a test lead and confirm values land.
+   attribution. Fetch the field reference first (below), and add **all** of the
+   standard set unless told otherwise. Check whether the forms already carry
+   Attributer or `utm_*` fields first; if they do, remap those rather than
+   duplicating them, renaming to MTK naming as you go — see "Reusing fields
+   that are already there".
+5. **Order the fields** — First, then Last, then IDs, then Insights, on the
+   form and in the field map.
+6. **Verify** — submit a test lead and confirm values land.
 
 ## Naming rules — this is where setups break
 
@@ -102,6 +107,23 @@ field: the visible **Field Name**, the **HTML Name** the tag matches on, the
 source captures — grouped as query sources, cookies & click IDs, and insights,
 plus the handful that are not in the standard set.
 
+### Add all of them by default
+
+**Add every field in the standard set unless the user says otherwise.** Not a
+subset, not "the important ones" — the whole set. Attribution questions arrive
+months after the form was built, and a field that was never on the form has no
+history to answer them with: you cannot backfill a value nobody captured. The
+cost of an extra hidden input is nothing; the cost of a missing one is a gap
+that never closes.
+
+So do not trim the list on the client's behalf, and do not ask which fields
+they want. Add them all, and let the user tell you to cut.
+
+Trim only when they say so, or when the platform forces it — some builders cap
+field counts or value lengths, and the platform guide says so where it
+applies. When a platform makes you drop something, say which field and why
+rather than dropping it silently.
+
 ### If the fetch fails
 
 Do not reconstruct the list from memory and do not guess a field name — that
@@ -130,10 +152,13 @@ In order of authority:
 A site that already runs Attributer, or that already has hidden `utm_*` inputs
 on its forms, does not arrive empty. Those fields are already columns on the
 CRM record, already in saved reports, already firing automations. **Before you
-add the full set of new fields, check what is already on the form and try to
-remap it.**
-Point MTK at the names that are already there and the same columns keep
-filling — from MTK now, with no CRM rework and no history gap.
+add the full set of new fields, work out what is already on the form and what
+each field corresponds to.**
+
+Knowing that `Channel Drilldown 2` was the campaign name tells you which CRM
+column to keep pointing at campaign data, which report still means what, and
+what the client's history actually contains. That continuity is the value —
+carried forward under MTK names, not by freezing the old ones in place.
 
 Remap to the **Last** fields. Both an Attributer value and a bare `utm_*`
 hidden field describe the visit that produced the lead, so `last.*` is the
@@ -148,22 +173,42 @@ whichever runs last wins, results flip between submissions, and on Squarespace
 the two rounds of URL-parameter reloads compound into extra pageviews. One
 filler per field.
 
-### The three ways to remap
+### Remapping means renaming, not keeping the old name
 
-The field map is a list of **HTML Name → Data Source** rows and both columns
-are free text, so the remap happens in the dashboard, not on the form.
+A remap works out **which MTK field the existing one corresponds to** — that
+is the thinking part, and for the Attributer drilldowns it needs the user (see
+below). What it does not do is leave the old name in place.
 
-- **Where you can name fields** — find the MTK row for the equivalent value and
-  **overwrite its HTML Name** with the name the form actually uses (`Channel`,
-  `utm_source`, whatever it is). The data source stays put; only the name the
-  tag hunts for changes. The form is never touched.
+**Rename the field to MTK naming.** `Channel` becomes `mtk_last_channel`,
+`utm_source` becomes `mtk_last_source`, `Channel Drilldown 2` becomes whatever
+the confirmed mapping says. One naming convention across every form and every
+client, matching the field reference exactly — which is what makes the next
+person able to read the setup, and what keeps the troubleshooting step ("does
+the HTML `name` match the reference, character for character?") meaningful.
+Leave `Channel` sitting there and every future reader has to rediscover what
+it was wired to.
+
+How to apply it depends on the platform:
+
+- **Where you can name fields** — rename the input on the form to the `mtk_*`
+  name from the field reference. Leave the field map on its standard row; it
+  already matches.
 - **Where fields fill by Default Value** (Gravity Forms, Elementor, and the
-  other token platforms) — leave the field map alone and **swap the old tool's
-  token for MTK's** in the field's existing Default Value: `[channel]` becomes
-  `[mtk:last.channel]`.
-- **When the client wants both names** — `+ Add field`, name the new row for
-  the existing field, and point it at the same data source as the `mtk_*` row.
-  Two rows, one value, both fill.
+  other token platforms) — the name is not yours to set, so **swap the old
+  tool's token for MTK's** in the field's existing Default Value: `[channel]`
+  becomes `[mtk:last.channel]`. Rename the field's label to the MTK Field Name
+  so it still reads correctly in submissions.
+- **Where the name genuinely cannot change** — a CRM integration keyed to the
+  literal string, a form the client cannot edit — point an added field-map row
+  at the old name (`+ Add field`, old name, MTK data source). Treat this as the
+  exception, not the default, and tell the user you took it and why.
+
+**Renaming a form field repoints where its data lands.** The CRM mapping that
+was fed by `Channel` now needs pointing at `mtk_last_channel`, and any
+automation or report keyed to the old form field needs the same. Walk the user
+through that rather than leaving them to find it when a column stops filling —
+the history already in the CRM stays put; it is only new submissions that
+arrive under the new name.
 
 Read the **rendered** `name` attribute off the live form, not the label in the
 form builder. Elementor and friends show you `Channel` and emit
@@ -258,11 +303,12 @@ Meta.
 
 Six or so fields have a predecessor. The rest do not — every `first.*` value,
 the journey string, session and pageview counts, paid-touch counts and timing,
-and the conversion timestamps. Add those as new fields the normal way. Remap
-what the CRM already reads; add the rest alongside it.
+and the conversion timestamps. Remapping is not a smaller install: add the
+whole standard set, with the remapped fields renamed into it. What remapping
+buys is continuity for the columns the CRM already reads, not a shorter list.
 
-After remapping, verify each reused field the same way as a new one — an
-overwritten HTML Name that is off by a character fails exactly as silently.
+After remapping, verify each renamed field the same way as a new one — a
+rename that is off by a character fails exactly as silently.
 
 ## Carrying page values into a form
 
@@ -270,6 +316,36 @@ To capture something the tag cannot know by itself — a product title, a
 listing ID, any GTM variable — add a field with the data source `dl:your_key`
 and push that key to the dataLayer. The dashboard shows a ready-made tag for
 doing the pushing.
+
+## Order the fields before you hand it over
+
+Once every field is in place — new ones added, remapped ones renamed — put them
+in this order:
+
+1. **First** — every `first.*` field.
+2. **Last** — every `last.*` field.
+3. **IDs** — the click IDs and Meta cookies (`mtk_gclid`, `mtk_gbraid`,
+   `mtk_wbraid`, `mtk_msclkid`, `mtk_fbclid`, `mtk_fbc`, `mtk_fbp`).
+4. **Insights** — everything else: journey, counts, paid-touch, page, and the
+   conversion timestamps.
+
+All the First fields together, then all the Last fields — not interleaved
+dimension by dimension. Somebody scanning a lead record wants to read the
+whole first-touch story, then the whole last-touch story, and a list that
+alternates `First Campaign, Last Campaign, First Channel, Last Channel` makes
+that impossible.
+
+Apply it in both places:
+
+- **On the form** — the order you add the hidden inputs is the order they
+  appear in submissions and, on most platforms, in the CRM record and the lead
+  notification email. This is the one that the client actually sees.
+- **In the field map** — the dashboard already gives IDs and Insights their own
+  groups, so what is left is the Query sources group: order those rows First
+  block, then Last block. Rows render in the order the map holds them, and
+  there is no drag-to-reorder, so this is set by the order you enter them.
+
+If you are handing off a CSV or a list to a developer, order it the same way.
 
 ## Verifying
 
