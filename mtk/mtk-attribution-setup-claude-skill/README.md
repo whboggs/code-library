@@ -21,6 +21,13 @@ adding the hidden form fields with exactly the right names.
   three groups: query sources, cookies & click IDs, and insights. Canonical
   names only; the legacy `mtk_ft_*` / `mtk_lt_*` spellings are called out as
   off-limits for new work.
+- **Reusing fields that are already there** — when a site already runs
+  Attributer or already has hidden `utm_*` inputs, remap those existing field
+  names onto MTK's `last.*` data sources instead of adding parallel fields, so
+  the CRM columns and reports built on them keep working. Carries the
+  Attributer field/token → MTK mapping, the loose-UTM mapping, the three ways
+  to apply a remap, and the value-shape changes that survive the swap (channel
+  wording, landing page as a path).
 - **Verification steps** and the most common failure (a name mismatch
   producing a silently empty field).
 
@@ -54,6 +61,8 @@ form with no error anywhere. Update it in the same change as:
 - a docs page added, removed, or moved — the URLs and platform slugs are
   hardcoded in the skill
 - a platform changing its install method
+- Attributer renaming a field or changing a token, which breaks the remapping
+  table (https://help.attributer.io)
 - the engine gaining or renaming a data source (`whboggs/mtk-attribution`,
   `src/engine.js`)
 

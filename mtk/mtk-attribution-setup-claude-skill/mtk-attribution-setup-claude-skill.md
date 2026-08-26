@@ -1,6 +1,6 @@
 ---
 name: mtk-attribution-setup
-description: Sets up MTK Attribution on a client website — installing the tag, building the field map, and adding the hidden form fields that carry attribution data into the CRM. Use this skill whenever the user says "set up MTK Attribution", "install MTK on [client]", "add the attribution fields", "what fields do I add to this form", "add MTK to Webflow / Wix / Squarespace / Gravity Forms / Elementor / Jotform / GoHighLevel / Contact Form 7 / Zoho / Framer", "the attribution fields are coming through empty", or any close variant where MTK Attribution is being installed on or wired into a site or form. Always use this skill for these requests — the field names and labels must match exactly, and guessing them silently breaks capture.
+description: Sets up MTK Attribution on a client website — installing the tag, building the field map, and adding the hidden form fields that carry attribution data into the CRM. Use this skill whenever the user says "set up MTK Attribution", "install MTK on [client]", "add the attribution fields", "what fields do I add to this form", "add MTK to Webflow / Wix / Squarespace / Gravity Forms / Elementor / Jotform / GoHighLevel / Contact Form 7 / Zoho / Framer", "the attribution fields are coming through empty", "they already use Attributer", "the form already has UTM fields", "can we reuse the fields that are already there", or any close variant where MTK Attribution is being installed on or wired into a site or form. Always use this skill for these requests — the field names and labels must match exactly, and guessing them silently breaks capture.
 ---
 
 # MTK Attribution — setup
@@ -54,7 +54,9 @@ CSV from the config screen and handed to a developer.
 3. **Confirm the field map** — the dashboard config screen is what the tag
    actually reads. Toggle off anything the client doesn't need; leave the rest.
 4. **Add the form fields** — hidden fields on every form that should carry
-   attribution. Naming rules below.
+   attribution. Naming rules below. First check whether the forms already
+   carry Attributer or `utm_*` fields; if they do, remap those instead of
+   duplicating them — see "Reusing fields that are already there".
 5. **Verify** — submit a test lead and confirm values land.
 
 ## Naming rules — this is where setups break
@@ -166,6 +168,116 @@ API matching, `param:fbclid` plus the `_fbc` cookie is the right pair.
 expects. `Custom Conversion Time` is shaped by per-license options in the
 dashboard, for CRM and spreadsheet imports.
 
+## Reusing fields that are already there — Attributer and UTMs
+
+A site that already runs Attributer, or that already has hidden `utm_*` inputs
+on its forms, does not arrive empty. Those fields are already columns on the
+CRM record, already in saved reports, already firing automations. **Before you
+add 41 new fields, check what is already on the form and try to remap it.**
+Point MTK at the names that are already there and the same columns keep
+filling — from MTK now, with no CRM rework and no history gap.
+
+Remap to the **Last** fields. Both an Attributer value and a bare `utm_*`
+hidden field describe the visit that produced the lead, so `last.*` is the
+like-for-like swap. (If a client's reporting was built on first-touch, use the
+`first.*` twin instead — same mechanics, same table, different prefix.)
+
+### Take the old tool out first
+
+Remove Attributer — or whatever is filling those fields — before MTK goes
+live. Two prefill scripts competing over one input is the classic failure:
+whichever runs last wins, results flip between submissions, and on Squarespace
+the two rounds of URL-parameter reloads compound into extra pageviews. One
+filler per field.
+
+### The three ways to remap
+
+The field map is a list of **HTML Name → Data Source** rows and both columns
+are free text, so the remap happens in the dashboard, not on the form.
+
+- **Where you can name fields** — find the MTK row for the equivalent value and
+  **overwrite its HTML Name** with the name the form actually uses (`Channel`,
+  `utm_source`, whatever it is). The data source stays put; only the name the
+  tag hunts for changes. The form is never touched.
+- **Where fields fill by Default Value** (Gravity Forms, Elementor, and the
+  other token platforms) — leave the field map alone and **swap the old tool's
+  token for MTK's** in the field's existing Default Value: `[channel]` becomes
+  `[mtk:last.channel]`.
+- **When the client wants both names** — `+ Add field`, name the new row for
+  the existing field, and point it at the same data source as the `mtk_*` row.
+  Two rows, one value, both fill.
+
+Read the **rendered** `name` attribute off the live form, not the label in the
+form builder. Elementor and friends show you `Channel` and emit
+`form_fields[field_a1b2c3]`; the tag matches on what is in the HTML, character
+for character.
+
+### Attributer → MTK
+
+| Attributer field | Its token | MTK data source |
+|---|---|---|
+| Channel | `[channel]` | `last.channel` |
+| Channel Drilldown 1 | `[channeldrilldown1]` | `last.source` |
+| Channel Drilldown 2 | `[channeldrilldown2]` | `last.campaign` |
+| Channel Drilldown 3 | `[channeldrilldown3]` | `last.term` |
+| Landing Page | `[landingpage]` | `last.landing_page` |
+| Landing Page Group | `[landingpagegroup]` | `last.landing_page_group` |
+
+Three shape changes to warn the client about, because the column name survives
+the swap and the values inside it do not:
+
+- **Channel wording differs.** MTK emits `Direct`, `Email`, and `Campaign`
+  where Attributer wrote `Direct Traffic`, `Email Marketing`, and
+  `Other Campaigns`, and MTK has no `Display` or `Affiliates` bucket. Anything
+  downstream matching those strings exactly — CRM filters, workflow triggers,
+  report groupings, pivot tables — needs its values updated.
+- **Landing Page is a path, not a URL.** `last.landing_page` is
+  `/pricing`; Attributer stored the full URL. There is no full-landing-URL
+  data source (`page.url` is the *conversion* page), so say so rather than
+  substituting it.
+- **Drilldown 3 is not always a term.** Attributer's finest level shifts by
+  channel — ad group in some docs, `utm_term` in others, `No Terms` when
+  absent. `last.term` is strictly `utm_term`. If the client actually reads ad
+  group out of that column, `last.content` or `last.ad_placement` may fit
+  better; check the real values before promising a match.
+
+### Loose UTM fields → MTK
+
+| Existing field name | MTK data source |
+|---|---|
+| `utm_source` | `last.source` |
+| `utm_medium` | `last.medium` |
+| `utm_campaign` | `last.campaign` |
+| `utm_term` | `last.term` |
+| `utm_content` | `last.content` |
+| `referrer` | `last.referrer` |
+| `landing_page` | `last.landing_page` |
+| `gclid` | `last_paid.gclid` |
+| `gbraid` / `wbraid` / `msclkid` | `last_paid.gbraid` / `last_paid.wbraid` / `last_paid.msclkid` |
+| `fbclid` | `param:fbclid` |
+| anything else off the URL, e.g. `utm_id` | `param:utm_id` |
+
+**Do not map a `utm_*` field to `param:utm_source`.** `param:` reads the live
+URL only, so it fills on the landing page and empties on the next click —
+which is the bug most homegrown UTM-capture scripts already have. `last.*` is
+stored on the visit and survives every page and every return, and fixing that
+silently is most of the value of the remap.
+
+The click IDs keep their standard sources for the reason the table above
+already gives: `last_paid.*` for Google and Microsoft so a lead who returns
+direct still carries the ID that earned the credit, and `param:fbclid` for
+Meta.
+
+### What remapping does not cover
+
+Six or so fields have a predecessor. The rest do not — every `first.*` value,
+the journey string, session and pageview counts, paid-touch counts and timing,
+and the conversion timestamps. Add those as new fields the normal way. Remap
+what the CRM already reads; add the rest alongside it.
+
+After remapping, verify each reused field the same way as a new one — an
+overwritten HTML Name that is off by a character fails exactly as silently.
+
 ## Carrying page values into a form
 
 To capture something the tag cannot know by itself — a product title, a
@@ -204,6 +316,8 @@ Update this skill whenever:
   above are hardcoded.
 - **A platform's install method changes** (e.g. a form tool starts allowing
   real field names), which changes the Method column.
+- **Attributer renames a field or changes a token**, which breaks the
+  remapping table. Source of truth: https://help.attributer.io.
 - **The engine gains or renames a data source** — `whboggs/mtk-attribution`,
   `src/engine.js`.
 
