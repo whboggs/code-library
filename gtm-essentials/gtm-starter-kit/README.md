@@ -39,14 +39,6 @@ sure something pushes `form_submit` to the dataLayer.
 |---|---|
 | `cjs_traffic_source` | `{{cJS - Traffic Source}}` |
 | `cjs_ad_placement` | `{{cJS - Ad Placement}}` |
-| `cjs_fbc_exists` | `{{cJS - Boolean - _fbc Exists}}` |
-| `cjs_fbp_exists` | `{{cJS - Boolean - _fbp Exists}}` |
-| `cjs_fbclid_exists` | `{{cJS - Boolean - fbclid Exists}}` |
-| `cjs_gcl_aw_exists` | `{{cJS - Boolean - _gcl_aw Exists}}` |
-| `cjs_uetmsclkid_exists` | `{{cJS - Boolean - _uetmsclkid Exists}}` |
-| `cjs_ttp_exists` | `{{cJS - Boolean - _ttp Exists}}` |
-| `cjs_twclid_exists` | `{{cJS - Boolean - _twclid Exists}}` |
-| `cjs_li_fat_id_exists` | `{{cJS - Boolean - li_fat_id Exists}}` |
 
 ### Trigger — folder *GTM Starter Kit*
 
@@ -128,8 +120,9 @@ Full details and source files are in
 - **Firing option:** every tag ships set to *Once per event* (Advanced Settings
   → Tag firing options), so each trigger event fires the tag at most once —
   including repeat form submits on the same page load.
-- **Booleans as user properties:** the `*_exists` flags describe the visitor's
-  cookies, not the event — consider sending them as GA4 **user properties**
-  instead of event parameters.
+- **Existence booleans:** the `cJS - Boolean - … Exists` variables ship with the
+  kit but are no longer sent by the GA4 event tag — they describe the visitor's
+  cookies, not the event. If you want them in GA4, add them as **user
+  properties** on *Config - GA4* rather than as event parameters.
 - **Consent:** for Consent Mode setups, fire *Conversion Linker* on **Consent
   Initialization - All Pages**, and gate the Meta tag on marketing consent.
