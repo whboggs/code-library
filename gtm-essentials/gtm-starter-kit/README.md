@@ -79,8 +79,6 @@ Full details and source files are in
 
 - **First-party cookie variables** (`1PC - …`): `_fbc`, `_fbp`, `fbclid`,
   `_gcl_aw`, `_uetmsclkid`, `_ttp`, `_twclid`, `li_fat_id`.
-- **Existence booleans** (`cJS - Boolean - <cookie> Exists`) — one per cookie
-  above; each returns `!!{{1PC - <cookie>}}`.
 - **`cJS - Traffic Source`** — last-touch traffic source
   ([source](../variables/cjs-traffic-source/cjs-traffic-source.js)).
 - **`cJS - Ad Placement`** — `utm_placement`, persisted per session
@@ -120,9 +118,5 @@ Full details and source files are in
 - **Firing option:** every tag ships set to *Once per event* (Advanced Settings
   → Tag firing options), so each trigger event fires the tag at most once —
   including repeat form submits on the same page load.
-- **Existence booleans:** the `cJS - Boolean - … Exists` variables ship with the
-  kit but are no longer sent by the GA4 event tag — they describe the visitor's
-  cookies, not the event. If you want them in GA4, add them as **user
-  properties** on *Config - GA4* rather than as event parameters.
 - **Consent:** for Consent Mode setups, fire *Conversion Linker* on **Consent
   Initialization - All Pages**, and gate the Meta tag on marketing consent.
