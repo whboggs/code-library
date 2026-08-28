@@ -48,10 +48,6 @@ you import into, so the file works in any account.
 | `1PC - _twclid` | `_twclid` | Twitter / X |
 | `1PC - li_fat_id` | `li_fat_id` | LinkedIn |
 
-**Existence booleans** (Custom JS) — `cJS - Boolean - <cookie> Exists`, one
-per cookie above: `function() { return !!{{1PC - <cookie>}}; }`
-([source](../cjs-boolean-cookie-exists/cjs-boolean-cookie-exists.js)).
-
 **Session variables** (Custom JS):
 
 - `cJS - Traffic Source` — last-touch traffic source

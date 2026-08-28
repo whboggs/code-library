@@ -42,11 +42,6 @@ import into.
 > Cookie names are the common defaults for each platform — adjust the `name`
 > parameter if a site stores a click ID under a different cookie.
 
-**Existence booleans** — `cJS - Boolean - <cookie> Exists`, one per cookie
-above, built from
-[`cjs-boolean-cookie-exists.js`](variables/cjs-boolean-cookie-exists/cjs-boolean-cookie-exists.js):
-`function() { return !!{{1PC - <cookie>}}; }`.
-
 **Session variables** (Custom JS) — each also lives on its own in this repo:
 
 - `cJS - Traffic Source` — last-touch traffic source
