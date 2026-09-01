@@ -404,3 +404,110 @@ Additionally:
 - **Attribution lag applies to the click counter too.** Clicks post
   immediately; conversions do not. The 7–14 day window is still required
   before the click count means anything.
+
+## When the Rules Disagree
+
+Two rules on the same ad can return opposite verdicts — the click rule says
+cull, the spend/CPL rule says keep. Before reading that as a signal about the
+ad, work through it in this order. The first step alone resolves most cases.
+
+### First: are the two rules testing the same goal?
+
+`CPL = CPC ÷ CVR`, so a Goal CPL and a Goal CVR jointly imply a CPC:
+
+```
+Implied Goal CPC = {Goal CPL} × {Goal CVR}
+```
+
+An $80 CPL goal at a 3% CVR goal implies **$2.40**. An ad buying clicks below
+that is held to a stricter standard by the click rule than by the CPL rule, and
+will trip it first — systematically, on every cheap-click ad in the account.
+
+Check it directly:
+
+```
+CVR this ad needs = {its CPC} ÷ {Goal CPL}
+```
+
+At $1.20 CPC against an $80 CPL goal, the ad needs **1.5%**, not 3%. The
+thresholds bear this out — the click rule fires at `3.00 ÷ 0.03 = 100` clicks
+against the benchmark, but at `3.00 ÷ 0.015 = 200` clicks against what the ad
+actually needs, and the spend rule agrees: `$80 × 3.00 = $240`, which at $1.20
+CPC is the same 200 clicks.
+
+**The two rules can only disagree because they were given different goals.**
+Set `Goal CVR = CPC ÷ Goal CPL` and they collapse into one rule that cannot
+contradict itself — which is the same identity the *Sourcing Goal CVR* section
+warns about, seen from the other side. There it is a reason not to source Goal
+CVR from CPC; here it is the diagnostic for why two goals conflict.
+
+If the goals are inconsistent, the CPL goal is the business goal. Trust it, and
+fix the Goal CVR for this ad.
+
+### Second: a shorter window is not a second opinion
+
+If the goals are consistent and a short recent window still disagrees with a
+longer one, note what the short window actually is: a **subset** of the long
+one. Those clicks and that drought are already inside the long-window test, and
+that test — with more data — is saying the drought does not overturn the
+earlier evidence. Re-slicing to isolate the bad stretch and re-testing it is
+not new evidence; it is the same evidence with the inconvenient part removed.
+
+Two questions settle whether the short window is admissible at all:
+
+- **Is it older than the attribution window?** Clicks post immediately and
+  conversions do not, so a recent window is the single worst place to trust a
+  zero. If the window is younger than the click window plus processing, discard
+  the result — it is not a signal.
+- **Was the window chosen in advance?** A standing "trailing 14 days, every
+  Monday" applied uniformly to every ad is a test. A window picked after
+  noticing the ad looked bad is not.
+
+Ruling out a tracking break comes first regardless. Zero conversions on real
+traffic is indistinguishable from a broken tag; check other ads on the same
+landing page before concluding anything about this one.
+
+### Third: test against the ad's own history, not the goal
+
+An ad that passes on the full window and fails on a recent one is not
+necessarily failing its goal — it may have **changed**. That is a different
+question, and neither cull rule answers it: as noted in the Ad Culling
+guardrails, the test is one-sided and compares an entity to a goal, not to
+anything else, itself included.
+
+Same machinery, with the rate swapped from goal to observed:
+
+```
+Recent decay is real (95%) if:  {Recent clicks} > 3.00 ÷ {this ad's historical CVR}
+```
+
+Use the multiplier column for other confidence levels, and compute the
+historical CVR **excluding** the window under test. An ad converting at 2.5%
+historically needs 120 recent clicks with nothing to clear the bar; at 150
+clicks the expected count is 3.75 and `P(0) = e^−3.75 ≈ 2.4%`.
+
+Note this cuts the opposite way from a goal test: an ad **beating** its goal
+makes a drought more surprising, not less. A strong performer going quiet
+trips this sooner than a marginal one.
+
+A pass here reads as "this ad changed," not "this ad failed" — which points at
+creative fatigue, audience saturation, a broken landing page, or a seasonal
+shift. Those are diagnoses to investigate, not a cull.
+
+### Guardrails
+
+- **Every extra look raises the real false-cull rate.** The stated confidence
+  is per test. Two units × two windows × a check on every script run is a
+  family of tests, and the lifecycle probability of culling an at-goal ad is
+  meaningfully above the nominal 5%. The exact figure is not worth computing —
+  the tests are heavily correlated — but the direction is certain.
+- **The zero-conversion spend rule is the exception.** Spend crosses
+  `Goal CPA × Multiplier` exactly once, so checking daily does not grant
+  repeated attempts at that threshold. The conversion tiers above it are a
+  sequence of tests and do.
+- **Do not resolve a disagreement by taking the verdict you prefer.** Pick the
+  primary unit and window in advance, per the click-threshold guardrails, and
+  let the other rule inform diagnosis rather than the decision.
+- **To make the system respond to decay, change the standing rule** — a
+  uniform rolling window applied to every ad. Adding a second opportunistic
+  test on top of the first raises the false-cull rate invisibly.
