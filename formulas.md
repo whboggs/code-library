@@ -306,6 +306,87 @@ against the table's 30. The approximation errs toward keeping the ad, so the
 table is safe to use as-is. Reach for the exact form only on high-CVR lead
 forms where the difference is material.
 
+### Beyond Zero Conversions
+
+**At k ≥ 1, prefer the CPA form.** Once an ad has conversions, actual CPA is
+defined and the main Ad Culling rule answers the same question using a metric
+most people read natively. This subsection exists so the click form is written
+down correctly rather than re-derived, and for accounts where CVR — not CPA —
+is the native reporting metric.
+
+The zero-conversion rule reads as `Multiplier ÷ Goal CVR` only because at k=0
+the multiplier *is* the Poisson bound. In general the bound is
+`λ_upper(k) = k × Multiplier(k)`, the expected-conversion count that would make
+the observed k look too low:
+
+```
+Cull if:  {Clicks} > {k} × {Multiplier(k)} ÷ {Goal CVR}
+```
+
+Equivalently, stated as a rate:
+
+```
+Cull if:  {Actual CVR} < {Goal CVR} ÷ {Multiplier(k)}
+```
+
+The two are the same inequality, since `Actual CVR = k ÷ Clicks`. Set k=0 and
+the first collapses back to the zero-conversion rule above.
+
+Note the multiplier **divides** here where the CPA rule multiplies. CPA is
+lower-is-better and CVR is higher-is-better, so the tolerance band opens in the
+opposite direction — the same reason the k=0 rule divides.
+
+`{Multiplier(k)}` is the ordinary multiplier from the Ad Culling confidence
+tables. Multiplied through, it gives:
+
+| Conversions | 95% | 90% | 85% | 80% |
+|---|---|---|---|---|
+| 0 | 3.00 | 2.30 | 1.90 | 1.61 |
+| 1 | 4.74 | 3.89 | 3.37 | 2.99 |
+| 2 | 6.30 | 5.32 | 4.72 | 4.28 |
+| 5 | 10.50 | 9.25 | 8.50 | 7.90 |
+| 10 | 17.00 | 15.40 | 14.40 | 13.70 |
+| 15 | 23.10 | 21.30 | 20.10 | 19.20 |
+| 20 | 29.00 | 27.00 | 25.80 | 24.80 |
+| 30 | 40.80 | 38.40 | 36.90 | 35.70 |
+| 50 | 63.50 | 60.50 | 58.50 | 57.00 |
+| 75 | 90.75 | 87.00 | 84.75 | 83.25 |
+| 100 | 118.00 | 114.00 | 111.00 | 109.00 |
+| 125 | 145.00 | 140.00 | 137.50 | 135.00 |
+| 150 | 172.50 | 166.50 | 163.50 | 160.50 |
+
+Divide the cell by Goal CVR to get the click threshold. The k=0 row is the
+multiplier table from above, unchanged.
+
+#### Worked example
+
+Goal CVR 3%, 95% confidence, ad has 420 link clicks and 5 conversions →
+actual CVR 1.19%.
+
+Exposure form: `5 × 2.10 ÷ 0.03 = 350` clicks. 420 is above it → **cull**.
+Rate form: `3% ÷ 2.10 = 1.43%`. Actual CVR of 1.19% is below it → **cull**.
+
+Same ad at 300 clicks → actual CVR 1.67%, and 300 is under the 350 threshold →
+**keep**, both ways.
+
+#### Notes
+
+- **Interpolate with actual k.** Round k *down* to the nearest listed row to
+  pick the multiplier, as always — but keep your real k in the
+  `k × Multiplier` term. At k=7 that is `7 × 2.10 = 14.7` against a true bound
+  of 13.15, a higher click threshold, which errs toward keeping the ad.
+  Substituting the row's k for your own inverts that and culls early.
+- **No k=0 / k=1 collision.** 4.74 sits above 3.00, so at 3% goal CVR one
+  conversion moves the threshold from 100 clicks to 158 — a conversion
+  correctly buys the ad more runway, never less.
+- **The exact binomial form does not generalize.** `ln(1 − C) ÷ ln(1 − CVR)` is
+  a k=0 closed form. At k ≥ 1 the exact analogue is a Clopper–Pearson beta
+  bound, which needs a solver; the Poisson table is the practical answer and
+  stays conservative.
+- **Still one primary unit per account.** Having both a CPA form and a CVR form
+  at k ≥ 1 does not license running them together and culling on whichever
+  trips first. See the guardrail below.
+
 ### Guardrails
 
 All guardrails from the spend-based culling framework carry over unchanged.
