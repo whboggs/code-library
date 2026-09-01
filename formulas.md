@@ -192,3 +192,134 @@ The zero-conversion rule is necessarily fixed-window regardless — there is no 
 - **Jeffreys / gamma credible interval** (`2k+1`). Rejected on cost-benefit, not correctness. It has the best average coverage of the three, but differs from `2k+2` by less than 0.05 at k≥10, and being a credible rather than confidence interval it carries an interpretation burden every time the number has to be explained.
 
 **Porting note:** the Gamma(k, 1/k) relative-CPL formulation used in the CPL Reliability Suite and cull-rule generator is the `2k` convention. Any tooling built on that formulation predates this decision and will produce different multipliers than the tables above.
+
+## Zero-Conversion Click Threshold
+
+Companion to the zero-conversion spend rule. Same statistics, same multiplier
+table — clicks as the exposure unit instead of dollars.
+
+### When to Use This Instead of Spend
+
+The spend rule (`{Spend} > {Goal CPA} × {Multiplier}`) is the default and
+should stay the default on most accounts.
+
+Reach for the click version when:
+
+- CPCs vary widely between ads in the same ad set, and you want to judge
+  traffic/offer quality independent of what the auction charged
+- An ad is accumulating cheap clicks and no conversions — spend crawls toward
+  the threshold slowly while the traffic evidence piles up fast
+- You are evaluating landing page or offer performance rather than a budget
+  decision
+
+### The Rule
+
+```
+Cull if:  {Clicks} > {Multiplier} ÷ {Goal CVR}
+```
+
+Where `{Goal CVR}` is the click-to-conversion rate as a decimal (3% = 0.03).
+
+### Multiplier
+
+The multiplier is **fixed at the 0-conversion row** and does not move.
+
+This test only ever asks one question — "zero conversions, is that too
+unlikely?" — so the observed conversion count is pinned at 0. Clicks are
+exposure, not conversions; they no more move the multiplier than spend does in
+the dollar version. Confidence level is the only input that changes it.
+
+| Confidence | Multiplier |
+|---|---|
+| 95% | 3.00 |
+| 90% | 2.30 |
+| 85% | 1.90 |
+| 80% | 1.61 |
+
+These are `−ln(1 − confidence)`, the expected-conversion count at which
+observing zero becomes unlikely enough to act on.
+
+### Precomputed Thresholds
+
+Clicks at which a zero-conversion ad gets turned off:
+
+| Goal CVR | 95% | 90% | 85% | 80% |
+|---|---|---|---|---|
+| 20% | 15 | 12 | 10 | 9 |
+| 10% | 30 | 23 | 19 | 17 |
+| 5% | 60 | 46 | 38 | 33 |
+| 3% | 100 | 77 | 64 | 54 |
+| 2% | 150 | 115 | 95 | 81 |
+| 1% | 300 | 230 | 190 | 161 |
+| 0.5% | 600 | 460 | 380 | 322 |
+
+Each cell is `Multiplier ÷ Goal CVR`, rounded up.
+
+### Why Division, Not Multiplication
+
+The multiplier is a **count of conversions**, not a rate. Goal CVR is
+conversions *per click*, which puts the unit in the denominator:
+
+```
+clicks = conversions ÷ (conversions per click)
+       = 3.00 ÷ 0.20
+       = 15
+```
+
+Sanity check by multiplying back — every cell in a confidence column returns
+that column's multiplier:
+
+- 15 clicks × 20% = 3.0
+- 100 clicks × 3% = 3.0
+- 300 clicks × 1% = 3.0
+
+The spend rule reads as multiplication because Goal CPA is *dollars per
+conversion*, putting dollars in the numerator. Same test, inverted unit.
+
+### Sourcing Goal CVR
+
+Do **not** use the ad's own CPC to back into a CVR. `CVR = CPC ÷ CPA` makes
+`Clicks × CVR` collapse to `Spend ÷ Goal CPA`, and the click rule becomes the
+spend rule wearing a different hat.
+
+The click rule only carries new information when Goal CVR comes from outside
+the ad being tested:
+
+- Trailing account or campaign click-to-conversion rate over a stable window
+  (90 days is usually enough; exclude any period with tracking gaps)
+- A documented client benchmark where one exists
+- The landing page's historical CVR when the same page serves multiple ads
+
+Round the benchmark **down**. A conservative CVR raises the click threshold and
+favors keeping ads, consistent with the interpolation guardrail.
+
+### Exact Form
+
+The precomputed table uses a Poisson approximation. The exact binomial form is:
+
+```
+Cull if:  {Clicks} > ln(1 − {Confidence}) ÷ ln(1 − {Goal CVR})
+```
+
+The two diverge only above ~10% CVR — at 10% the exact form gives 29 clicks
+against the table's 30. The approximation errs toward keeping the ad, so the
+table is safe to use as-is. Reach for the exact form only on high-CVR lead
+forms where the difference is material.
+
+### Guardrails
+
+All guardrails from the spend-based culling framework carry over unchanged.
+Additionally:
+
+- **Do not run both rules loosely.** Clicks and spend are correlated but not
+  identical, so culling on "whichever trips first" inflates the false-cull
+  rate. Pick one primary unit per account and document it.
+- **Lock zero-conversion click tests at 95%**, same as the spend rule, even on
+  accounts running 80–85% elsewhere. In practice the 95% column is the only
+  one most accounts should use.
+- **Clicks must be link clicks**, not all clicks. On Meta, `clicks (all)`
+  includes engagement that never reached the landing page and will fire this
+  rule early.
+- **Attribution lag applies to the click counter too.** Clicks post
+  immediately; conversions do not. The 7–14 day window is still required
+  before the click count means anything.
