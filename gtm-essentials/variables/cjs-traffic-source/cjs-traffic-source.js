@@ -1,3 +1,10 @@
+/*!
+ * Marketing Toolkit — cJS – Traffic Source
+ * Version: v2.0.0
+ * Last updated: 2026-09-02
+ * https://github.com/whboggs/marketing-toolkit
+ */
+
 function() {
   // cJS - Traffic Source
   //

@@ -1,6 +1,8 @@
 /**
  * ROAS Keyword Labeler — SINGLE-ACCOUNT VERSION
  * ---------------------------------------------
+ * Version: v1.3.0
+ * Last updated: 2026-07-23
  * Runs inside ONE Google Ads account (not a manager account). For the MCC
  * fan-out version that processes every child account in parallel, use
  * agencyAddTopROASLabel.js instead. Don't run both against the same account —

@@ -1,4 +1,9 @@
 /**
+ * Marketing Toolkit — Contact Data Finder (GET_CONTACTS)
+ * Version: v1.0.0
+ * Last updated: 2026-05-18
+ * https://github.com/whboggs/marketing-toolkit
+ *
  * Consolidates contact data from every sheet except the active one.
  * Matches headers flexibly: "first", "last", "phone", "email", "zip"
  * (case-insensitive, partial match — so "First Name" matches "first").

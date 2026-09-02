@@ -116,7 +116,7 @@
           {
             "type": "TEMPLATE",
             "key": "html",
-            "value": "<script>\nfbq('track', 'Lead', {\n  lead_type: 'Form Submit', // Define Lead Type\n  // form_name: // (Optional) Translate form ID to Form Name via LUT or Variable\n  content_name: '{{Page Path}}', // Finds page path\n  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source\n  ad_placement: '{{cJS - Ad Placement}}' // Finds ad placement\n}, {\n  eventID: '{{cJS - Custom Event ID}}' // Meta's browser/server dedupe key\n});\n</script>"
+            "value": "<!--\n  Marketing Toolkit — Meta Pixel — Lead Event\n  Version: v1.3.0\n  Last updated: 2026-08-13\n  https://github.com/whboggs/marketing-toolkit\n-->\n<script>\nfbq('track', 'Lead', {\n  lead_type: 'Form Submit', // Define Lead Type\n  // form_name: // (Optional) Translate form ID to Form Name via LUT or Variable\n  content_name: '{{Page Path}}', // Finds page path\n  traffic_source: '{{cJS - Traffic Source}}', // Finds Last Touch traffic source\n  ad_placement: '{{cJS - Ad Placement}}' // Finds ad placement\n}, {\n  eventID: '{{cJS - Custom Event ID}}' // Meta's browser/server dedupe key\n});\n</script>"
           },
           {
             "type": "BOOLEAN",

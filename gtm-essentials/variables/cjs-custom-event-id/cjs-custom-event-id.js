@@ -1,5 +1,7 @@
 /*
  * cJS - Custom Event ID
+ * Version: v1.0.0
+ * Last updated: 2026-08-13
  * Globally unique event ID for Meta browser/CAPI deduplication.
  * Requires a Data Layer Variable named "DLV - gtm.uniqueEventId" reading
  * the built-in dataLayer key gtm.uniqueEventId.

@@ -1,6 +1,8 @@
 <?php
 /**
  * Marketing Toolkit — Gravity Forms fbc/fbp Populator
+ * Version: v1.0.0
+ * Last updated: 2026-05-15
  * https://github.com/whboggs/marketing-toolkit
  *
  * Packaged by W.H. Boggs — https://whboggs.com

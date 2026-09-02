@@ -1,6 +1,8 @@
 /**
  * ROAS Keyword Labeler — MCC VERSION
  * ----------------------------------
+ * Version: v1.1.0
+ * Last updated: 2026-07-23
  * Runs from a MANAGER (MCC) account and processes ALL child accounts in
  * parallel. Each account gets its own labels (entity labels are account-owned;
  * same name/color everywhere, but separate label objects).
