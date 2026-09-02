@@ -1,5 +1,7 @@
 /*!
- * Marketing Toolkit — Ad Placement v1.0.0
+ * Marketing Toolkit — Ad Placement
+ * Version: v1.0.0
+ * Last updated: 2026-07-02
  * https://github.com/whboggs/marketing-toolkit
  *
  * Captures utm_placement from URL on first pageview, persists via sessionStorage.

@@ -1,5 +1,7 @@
 /*
  * cJS - Post Title
+ * Version: v1.0.0
+ * Last updated: 2026-08-03
  * The page's post/article title: the .entry-title / first h1, falling back to
  * the og:title meta tag.
  */

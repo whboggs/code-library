@@ -1,5 +1,7 @@
 /*!
  * Wix Form Submission Listener (Velo)
+ * Version: v1.1.0
+ * Last updated: 2026-07-09
  * Loaded from https://github.com/whboggs/marketing-toolkit
  *
  * Captures Wix Forms submissions in Velo page/site code and forwards a

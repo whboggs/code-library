@@ -1,5 +1,7 @@
 /*!
  * Wix dataLayer Bridge — Custom Element
+ * Version: v1.1.0
+ * Last updated: 2026-07-09
  * Loaded from https://github.com/whboggs/marketing-toolkit
  *
  * Companion to listener.js. Velo frontend code can't reliably push to
