@@ -5,7 +5,7 @@ A Google Ads Script that runs at the **manager (MCC) level**, pulls the **last 1
 - **`Google Conv`** — conversions for the window
 - **`Google CPA`** — cost ÷ conversions (cleared when there are no conversions)
 
-Companion to the [Meta Ads sync](../../../meta/meta-ads-scripts/notion-account-sync/), which fills `FB Conv` and `Facebook CPA` on the same database.
+Companion to the [Meta Ads sync](../../../meta/meta-ads/meta-ads-scripts/notion-account-sync/), which fills `FB Conv` and `Facebook CPA` on the same database.
 
 ## What it does
 
